@@ -8,9 +8,8 @@ ANPrule:
 
 - description : |
     """
-    Detects when multiple hosts are using the same agent ID. This could occur in the event of an agent
-    being taken over and used to inject illegitimate documents into an instance as an attempt to spoof events in order to
-    masquerade actual activity to evade detection."""
+    "query": "sequence\n  [ any where parsedmessage.Image like \"*Windows*system32*msiexec.exe\" ]\n  [ any where parsedmessage.TargetFilename like \"*Program Files (x86)*Kaspersky Lab*NetworkAgent*protcomp*kl_remote.dll\" ]\n [any where anp.normdata.majorsubgroup == \"Session Create\" and parsedmessage.dst_port ==\"8080\" and parsedmessage.dst_ip ==\"192.168.1.11\"]"   
+    """
 
 - false_positives :  ["This is meant to run only on datasources using agents v7.14+ since versions prior to that will be missing the necessary field, resulting in false positives."]
 
@@ -55,18 +54,33 @@ ANPrule:
 
 name: "EQL_rule"
 
-index: winlogalias
+index: winasa 
+  # anpsiem-log-agentbase-windowsserver-000001
+# , anpsiem-log-agentless-syslog-security-cisco-firewall-asa-000001
 
 type: any
 
-eql: 
-  "query": "any where event.code == \"761\""
+# type: frequency
+
+# num_events: 2
+
+# query_key: event.code
+
+# timeframe:
+#   hours: 1
 
 
-###packetbeat>> dns.question.name = jimdosite.com
+eql:
+  "query": "sequence\n   [any where anp.normdata.majorsubgroup == \"Session Create\" and parsedmessage.dst_port ==\"8080\" and parsedmessage.dst_ip ==\"192.168.1.11\" and parsedmessage.src_ip == \"10.0.20.23\"]\n [any where event.code ==\"8\" and anpip== \"10.0.20.23\" ]"
+  # "query": "sequence\n  [any where event.code ==\"4624\" ]\n [ any where parsedmessage.Image like \"*Windows*system32*msiexec.exe\" and parsedmessage.RuleName == \"DLL\" ]\n [any where anp.normdata.majorsubgroup == \"Session Create\" and parsedmessage.dst_port ==\"8080\" and parsedmessage.dst_ip ==\"192.168.1.11\"]"
+
+  # "query": "any where event.code == \"860\"" 
+ 
+
+
+
 alert:
 - "slack"
 
 slack:
 slack_webhook_url: "https://hooks.slack.com/services/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"
-

@@ -1,0 +1,4 @@
+#!/bin/bash
+SCRIPT_PATH=/root/elast/elastalert/elastalert/server.py
+PYTHON_PATH=/usr/bin/python
+exit 1

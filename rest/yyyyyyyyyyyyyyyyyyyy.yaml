@@ -1,0 +1,15 @@
+- ANPdata:
+  - creation_date = 2021-12-22 10:50:14.779399+00:00
+  - maturity = production
+  - updated_date = 2021-12-22 10:50:14.779399+00:00
+- ANPrule:
+  - author:
+    - Elastic
+  - language: eql
+  - rule_id: '55'
+  - threat: ghgf
+- name: ' yyyyyyyyyyyyyyyyyyyy '
+- index: yy
+- type: any
+- query:
+  - query: sequence\n
