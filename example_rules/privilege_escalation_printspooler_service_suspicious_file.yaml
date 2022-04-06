@@ -1,0 +1,65 @@
+ANPdata:
+- creation_date = "2021/8/11"
+- maturity = "production"
+# - query_schema_validation = false
+- updated_date = "2021/8/11"
+# - min_stack_version = "7.12.0"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Detects attempts to exploit privilege escalation vulnerabilities related to the Print Spooler service. For more
+    information refer to the following CVE's - CVE-2020-1048, CVE-2020-1337 and CVE-2020-1300 and verify that the impacted
+    system is patched."
+
+# - false_positives:  ["""Legitimate local user creations may be done by a system or network administrator. Verify whether this is known
+    # behavior in your environment. Local user creations from unfamiliar users or hosts should be investigated. If known
+    # behavior is causing false positives, it can be exempted from the rule."""]
+
+# - interval: "60m"
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+# - note: """## Triage and analysis Decode the base64 encoded Tasks Actions registry value to investigate the task's configured action."""
+
+- references: ["https://voidsec.com/cve-2020-1337-printdemon-is-dead-long-live-printdemon/", "https://www.thezdi.com/blog/2020/7/8/cve-2020-1300-remote-code-execution-through-microsoft-windows-cab-files"]
+
+# - max_signals: 33
+
+- risk_score: 73
+
+- rule_id: "5bb4a95d-5a08-48eb-80db-4c3a63ec78a8"
+
+- severity: "high"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Privilege Escalation"]
+
+- type: "eql"
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1068",
+        name : "Exploitation for Privilege Escalation",
+        reference : "https://attack.mitre.org/techniques/T1068/"
+      ],
+      tactic: [
+        id : "TA0004",
+        name : "Privilege Escalation",
+        reference : "https://attack.mitre.org/tactics/TA0004/"]]
+  ]
+name: "Suspicious PrintSpooler Service Executable File Creation"
+index: .ds-winlogbeat-8.0.0-2022.02.19-000001
+type: any
+eql:
+  "query": "file where event.type != \"deletion\" and process.name : \"spoolsv.exe\" and
+    file.extension : (\"exe\", \"dll\") and
+    not file.path : (\"?:\\\\Windows\\\\System32\\\\spool\\\\*\", \"?:\\\\Windows\\\\Temp\\\\*\", \"?:\\\\Users\\\\*\")"
+
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

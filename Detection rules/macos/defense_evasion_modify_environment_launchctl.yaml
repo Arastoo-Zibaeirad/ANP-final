@@ -1,0 +1,59 @@
+ANPdata:
+- creation_date = "2021/08/08"
+- maturity = "production"
+- updated_date = "2021/08/08"
+
+ANPrule:
+- author = ["Elastic"]
+
+- description = """Identifies modifications to an environment variable using the built-in launchctl command. Adversaries may execute their
+    own malicious payloads by hijacking certain environment variables to load arbitrary libraries or bypass certain
+    restrictions."""
+
+- language = "kuery"
+
+- license = "Elastic License v2"
+
+- references = ["https://github.com/rapid7/metasploit-framework/blob/master//modules/post/osx/escalate/tccbypass.rb"]
+
+- risk_score = 47
+
+- rule_id =  "7453e19e-3dbf-4e4e-9ae0-33d6c6ed15e1"
+
+- severity = "medium"
+
+- tags =  ["Elastic", "Host", "macOS", "Threat Detection", "Defense Evasion"]
+
+- type = "query"
+
+name: "Modification of Environment Variable via Launchctl"
+
+index: ["auditbeat-*", "logs-endpoint.events.*"]
+
+type: any
+
+kql: 
+  "query": {"query_string": {"query": "event.category:process and event.type:start and\n  process.name:launchctl and\n  process.args:(setenv and not (JAVA*_HOME or\n                                RUNTIME_JAVA_HOME or\n                                DBUS_LAUNCHD_SESSION_BUS_SOCKET or\n                                ANT_HOME or\n                                LG_WEBOS_TV_SDK_HOME or\n                                WEBOS_CLI_TV or\n                                EDEN_ENV)                ) and\n  not process.parent.executable:(\"/Applications/NoMachine.app/Contents/Frameworks/bin/nxserver.bin\" or\n                                 \"/usr/local/bin/kr\" or\n                                 \"/Applications/NoMachine.app/Contents/Frameworks/bin/nxserver.bin\" or\n                                 \"/Applications/IntelliJ IDEA CE.app/Contents/jbr/Contents/Home/lib/jspawnhelper\")"}}
+
+threat:
+  - 01:
+    - threat_rule: 
+      - framework = "MITRE ATT&CK"
+    - technique:
+      - id = "T1574"
+      - name = "Hijack Execution Flow"
+      - reference = "https://attack.mitre.org/techniques/T1574/"
+      - subtechnique:
+        - id = "T1574.007"
+        - name = "Path Interception by PATH Environment Variable"
+        - reference = "https://attack.mitre.org/techniques/T1574/007/"
+    - tactic:
+      - id = "TA0005"
+      - name =  "Defense Evasion"
+      - reference = "https://attack.mitre.org/tactics/TA0005/"
+
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

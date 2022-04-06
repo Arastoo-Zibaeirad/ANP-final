@@ -1,0 +1,57 @@
+ANPdata:
+- creation_date = "2021/8/3"
+- maturity = "production"
+- updated_date = "2021/8/3"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Identifies InstallUtil.exe making outbound network connections. This may indicate adversarial activity as InstallUtil is often leveraged by adversaries to execute code and evade detection."
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+- risk_score: 21
+
+- rule_id: "a13167f1-eec2-4015-9631-1fee60406dcf"
+
+- severity: "medium"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Defense Evasion"]
+
+- type: "eql"
+
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1218",
+        name : "Signed Binary Proxy Execution",
+        reference : "https://attack.mitre.org/techniques/T1218/",
+        subtechnique: [
+          [id : "T1218.004",        
+          name : "InstallUtil",        
+          reference : "https://attack.mitre.org/techniques/T1218/004/"]
+        ]
+      ],
+
+      tactic: [
+        id : "TA0005",
+        name : "Defense Evasion",
+        reference : "https://attack.mitre.org/tactics/TA0005/"]]]
+
+name: "InstallUtil Process Making Network Connections"
+index: anp-log-agentbase-winclient
+type: any
+eql:
+  "query": "/* the benefit of doing this as an eql sequence vs kql is this will limit to alerting only on the first network connection */
+    sequence by process.entity_id
+      [process where event.type in (\"start\", \"process_started\") and process.name : \"installutil.exe\"]
+      [network where process.name : \"installutil.exe\" and network.direction == \"outgoing\"]"
+
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

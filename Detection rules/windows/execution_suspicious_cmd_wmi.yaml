@@ -1,0 +1,64 @@
+ANPdata:
+- creation_date = "2021/8/8"
+- maturity = "production"
+# - query_schema_validation = false
+- updated_date = "2021/8/8"
+# - min_stack_version = "7.12.0"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Identifies suspicious command execution (cmd) via Windows Management Instrumentation (WMI) on a remote host. This could
+    be indicative of adversary lateral movement."
+
+# - false_positives: ["Legitimate scheduled tasks may be created during installation of new software."]
+
+# - interval: "60m"
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+# - note: """## Triage and analysis
+#     The SxS DotLocal folder is a legitimate feature that can be abused to hijack standard modules loading order by forcing an executable on the same application.exe.local folder to load a malicious DLL module from the same directory."""
+
+# - references: ["https://docs.microsoft.com/en-us/windows/win32/dlls/dynamic-link-library-redirection"]
+
+# - max_signals: 33
+
+- risk_score: 47
+
+- rule_id: "12f07955-1674-44f7-86b5-c35da0a6f41a"
+
+- severity: "medium"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Execution"]
+
+- type: "eql"
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1047",
+        name : "Windows Management Instrumentation",
+        reference : "https://attack.mitre.org/techniques/T1047/"],
+      tactic: [
+        id : "TA0002",
+        name : "Execution",
+        reference : "https://attack.mitre.org/tactics/TA0002/"]]
+  ]
+
+name: "Suspicious Cmd Execution via WMI"
+index: anp-log-agentbase-winclient
+
+type: any
+eql:
+  "query": "process where event.type in (\"start\", \"process_started\") and
+    process.parent.name : \"WmiPrvSE.exe\" and process.name : \"cmd.exe\" and
+    process.args : \"127.0.0.1*\" and process.args : (\"2>&1\", \"1>\")"
+
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

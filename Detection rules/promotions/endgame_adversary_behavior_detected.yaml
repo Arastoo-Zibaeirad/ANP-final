@@ -1,0 +1,42 @@
+ANPdata:
+- creation_date = "2021/08/07"
+- maturity = "production"
+- updated_date = "2021/08/07"
+
+ANPrule:
+- author = ["Elastic"]
+
+- description = """Elastic Endgame detected an Adversary Behavior. Click the Elastic Endgame icon in the event.module column or the
+    link in the rule.reference column for additional information."""
+
+- interval = "10m"
+
+- language = "kuery"
+
+- license = "Elastic License v2"
+
+- risk_score = 47
+
+- rule_id =  "77a3c3df-8ec4-4da4-b758-878f551dee69"
+
+- severity = "medium"
+
+- tags = ["Elastic", "Elastic Endgame"]
+
+- type = "query"
+
+name: "Adversary Behavior - Detected - Elastic Endgame"
+
+index: ["endgame-*"]
+
+type: any
+
+kql:
+  "query": {"query_string": {"query": "event.kind:alert and event.module:endgame and (event.action:rules_engine_event or endgame.event_subtype_full:rules_engine_event)"}}
+
+
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

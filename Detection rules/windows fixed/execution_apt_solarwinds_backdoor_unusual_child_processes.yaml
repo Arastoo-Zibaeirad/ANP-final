@@ -1,0 +1,88 @@
+ANPdata:
+- creation_date = "2021/8/8"
+- maturity = "production"
+- updated_date = "2021/8/8"
+# - min_stack_version = "7.12.0"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "A suspicious SolarWinds child process was detected, which may indicate an attempt to execute malicious programs."
+
+- false_positives: ["Trusted SolarWinds child processes, verify process details such as network connections and file writes."]
+
+# - interval: "30m"
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+# - note: """## Triage and analysis
+#     AdFind.exe` is a legitimate domain query tool. Rule alerts should be investigated to identify if the user has a role that would explain using this tool and that it is being run from an expected directory and endpoint. Leverage the exception workflow in the Kibana Security App or Elasticsearch API to tune this rule to your environment."""
+
+- references: ["https://www.fireeye.com/blog/threat-research/2020/12/evasive-attacker-leverages-solarwinds-supply-chain-compromises-with-sunburst-backdoor.html", "https://github.com/fireeye/sunburst_countermeasures/blob/main/rules/SUNBURST/hxioc/SOLARWINDS%20SUSPICIOUS%20CHILD%20PROCESSES%20(METHODOLOGY).ioc"]
+
+# - max_signals: 33
+
+- risk_score: 47
+
+- rule_id: "93b22c0a-06a0-4131-b830-b10d5e166ff4"
+
+- severity: "medium"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Execution"]
+
+- type: "eql"
+
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1106",
+        name : "Native API",
+        reference : "https://attack.mitre.org/techniques/T1106/"],
+      tactic: [
+        id : "TA0002",
+        name : "Execution",
+        reference : "https://attack.mitre.org/tactics/TA0002/"]],
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1195",
+        name : "Supply Chain Compromise",
+        reference : "https://attack.mitre.org/techniques/T1195/",
+        subtechnique: [
+          [id : "T1195.002",        
+          name : "Compromise Software Supply Chain",        
+          reference : "https://attack.mitre.org/techniques/T1195/002/"]
+        ]
+      ],
+      tactic: [
+        id : "TA0001",
+        name : "Initial Access",
+        reference : "https://attack.mitre.org/tactics/TA0001/"]
+    ]
+  ]
+
+name: "Suspicious SolarWinds Child Process"
+index: .ds-winlogbeat-8.0.0-2022.02.19-000001
+
+type: any
+eql:
+  "query": "process where event.type in (\"start\", \"process_started\") and
+    process.parent.name: (\"SolarWinds.BusinessLayerHost.exe\", \"SolarWinds.BusinessLayerHostx64.exe\") and
+    not process.name : (
+            \"APMServiceControl*.exe\",
+            \"ExportToPDFCmd*.Exe\",
+            \"SolarWinds.Credentials.Orion.WebApi*.exe\",
+            \"SolarWinds.Orion.Topology.Calculator*.exe\",
+            \"Database-Maint.exe\",
+            \"SolarWinds.Orion.ApiPoller.Service.exe\",
+            \"WerFault.exe\",
+            \"WerMgr.exe\")"
+
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

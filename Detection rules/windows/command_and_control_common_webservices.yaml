@@ -1,0 +1,76 @@
+ANPdata:
+- creation_date = "2021/8/1"
+- maturity = "production"
+- updated_date = "2021/8/1"
+
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Adversaries may implement command and control communications that use common web services in order to hide their activity. This attack technique is typically targeted to an organization and uses web services common to the victim network which allows the adversary to blend into legitimate traffic. activity. These popular services are typically targeted since they have most likely been used before a compromise and allow adversaries to blend in the network."
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+- risk_score: 21
+
+- rule_id: "66883649-f908-4a5b-a1e0-54090a1d3a32"
+
+- severity: "low"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Command and Control"]
+
+- type: "eql"
+
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1102",
+        name : "Web Service",
+        reference : "https://attack.mitre.org/techniques/T1102/"],
+      tactic: [
+        id : "TA0011",
+        name : "Command and Control",
+        reference : "https://attack.mitre.org/tactics/TA0011/"]]]
+
+name: Connection to Commonly Abused Web Services
+index: anp-log-agentbase-winclient
+type: frequency
+num_events: 1
+timeframe:
+  hours: 1
+
+eql:
+  "query": "network where network.protocol == \"dns\" and process.name != null
+    and user.id not in (\"S-1-5-18\", \"S-1-5-19\", \"S-1-5-20\") and /* Add
+    new WebSvc domains here */ dns.question.name : (
+    \"raw.githubusercontent.*\", \"*.pastebin.*\",
+    \"*drive.google.*\", \"*docs.live.*\",
+    \"*api.dropboxapi.*\", \"*dropboxusercontent.*\",
+    \"*onedrive.*\", \"*4shared.*\", \"*.file.io\",
+    \"*filebin.net\", \"*slack-files.com\", \"*ghostbin.*\",
+    \"*ngrok.*\", \"*portmap.*\", \"*serveo.net\",
+    \"*localtunnel.me\", \"*pagekite.me\", \"*localxpose.io\",
+    \"*notabug.org\", \"rawcdn.githack.*\",
+    \"paste.nrecom.net\", \"zerobin.net\", \"controlc.com\",
+    \"requestbin.net\" ) and /* Insert noisy false positives here */
+    not process.executable: ( \"*Program Files*.exe\", 
+    \"*Program Files (x86)*.exe\",  
+    \"*Windows*System32*WWAHost.exe\",
+    \"*Windows*System32*smartscreen.exe\",
+    \"*Windows*System32*MicrosoftEdgeCP.exe\",
+    \"*ProgramData*Microsoft*Windows
+    Defender*Platform*MsMpEng.exe\", \"*Users*AppData*Loc
+    al*Google*Chrome*Application*chrome.exe\",\
+    \"*Users*AppData*Local*Programs*Fiddler*Fiddler.exe\",
+    \"*Users*AppData*Local*Programs*Microsoft VS Code*Code.exe\",
+    \"*Users*AppData*Local*Microsoft*OneDrive*OneDrive.exe\",
+    \"*Windows*system32*mobsync.exe\",
+    \"*Windows*SysWOW64*mobsync.exe\")"
+    
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

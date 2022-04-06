@@ -1,0 +1,59 @@
+ANPdata:
+- creation_date = "2021/08/08"
+- maturity = "production"
+- updated_date = "2021/08/08"
+
+ANPrule:
+- author = ["Elastic"]
+
+- description = """Identifies suspicious child processes of frequently targeted Microsoft Office applications (Word, PowerPoint, and
+    Excel). These child processes are often launched during exploitation of Office applications or by documents with
+    malicious macros."""
+
+- language = "eql"
+
+- license = "Elastic License v2"
+
+- references = ["https://blog.malwarebytes.com/cybercrime/2017/02/microsoft-office-macro-malware-targets-macs/"]
+
+- risk_score = 47
+
+- rule_id = "66da12b1-ac83-40eb-814c-07ed1d82b7b9"
+
+- severity = "medium"
+
+- tags = ["Elastic", "Host", "macOS", "Threat Detection", "Initial Access"]
+
+- type = "eql"
+
+name: "Suspicious macOS MS Office Child Process"
+
+index: ["logs-endpoint.events.*"]
+
+type: any
+
+eql: 
+  "query": "process where event.type in (\"start\", \"process_started\") and\n process.parent.name:(\"Microsoft Word\", \"Microsoft PowerPoint\", \"Microsoft Excel\") and\n process.name: (   \"bash\",    \"dash\",    \"sh\",    \"tcsh\",    \"csh\",    \"zsh\",    \"ksh\",    \"fish\",    \"python*\",   \"perl*\",    \"php*\",    \"osascript\",   \"pwsh\",    \"curl\",    \"wget\",    \"cp\",    \"mv\",    \"base64\",   \"launchctl\"  ) and\n  /* noisy false positives related to product version discovery and office errors reporting */  not process.args:    (      \"ProductVersion\",      \"hw.model\",      \"ioreg\",      \"ProductName\",      \"ProductUserVisibleVersion\",      \"ProductBuildVersion\",      \"/Library/Application Support/Microsoft/MERP*/Microsoft Error Reporting.app/Contents/MacOS/Microsoft Error Reporting\"    )"
+
+threat:
+  - 01:
+    - threat_rule: 
+      - framework = "MITRE ATT&CK"
+    - technique:
+      - id = "T1566"
+      - name = "Phishing"
+      - reference = "https://attack.mitre.org/techniques/T1566/"
+      - subtechnique:
+        - id = "T1566.001"
+        - name = "Spearphishing Attachment"
+        - reference = "https://attack.mitre.org/techniques/T1566/001/"
+    - tactic:
+      - id = "TA0001"
+      - name = "Initial Access"
+      - reference = "https://attack.mitre.org/tactics/TA0001/"
+
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

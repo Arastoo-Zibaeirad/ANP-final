@@ -1,0 +1,72 @@
+ANPdata:
+- creation_date = "2021/08/08"
+- maturity = "production"
+- updated_date = "2021/08/08"
+
+ANPrule:
+- author = ["Elastic"]
+
+- description = """Identifies the creation of a hidden launch agent or daemon. An adversary may establish persistence by installing a new
+    launch agent or daemon which executes at login."""
+
+- language = "eql"
+
+- license = "Elastic License v2"
+
+- references = [ "https://developer.apple.com/library/archive/documentation/MacOSX/Conceptual/BPSystemStartup/Chapters/CreatingLaunchdJobs.html"]
+
+- risk_score = 47
+
+- rule_id = "092b068f-84ac-485d-8a55-7dd9e006715f"
+
+- severity = "medium"
+
+- tags = ["Elastic", "Host", "macOS", "Threat Detection", "Persistence", "Defense Evasion"]
+
+- type = "eql"
+
+name: "Creation of Hidden Launch Agent or Daemon"
+
+index: ["auditbeat-*", "logs-endpoint.events.*"]
+
+type: any
+
+eql: 
+    "query": "file where event.type != \"deletion\" and\n  file.path :   (    \"/System/Library/LaunchAgents/.*.plist\",    \"/Library/LaunchAgents/.*.plist\",    \"/Users/*/Library/LaunchAgents/.*.plist\",    \"/System/Library/LaunchDaemons/.*.plist\",    \"/Library/LaunchDaemons/.*.plist\")"
+
+threat:
+  - 01:
+    - threat_rule: 
+      - framework = "MITRE ATT&CK"
+    - technique:
+      - id = "T1543"
+      - name = "Create or Modify System Process"
+      - reference = "https://attack.mitre.org/techniques/T1543/"
+      - subtechnique:
+        - id = "T1543.001"
+        - name = "Launch Agent"
+        - reference = "https://attack.mitre.org/techniques/T1543/001/"
+    - tactic:
+      - id = "TA0003"
+      - name = "Persistence"
+      - reference = "https://attack.mitre.org/tactics/TA0003/"
+  - 02:
+    - threat_rule: 
+      - framework = "MITRE ATT&CK"
+    - technique:
+      - id = "T1564"
+      - name = "Hide Artifacts"
+      - reference = "https://attack.mitre.org/techniques/T1564/"
+      - subtechnique:
+        - id = "T1564.001"
+        - name = "Hidden Files and Directories"
+        - reference = "https://attack.mitre.org/techniques/T1564/001/"
+    - tactic:
+      - id = "TA0005"
+      - name = "Defense Evasion"
+      - reference = "https://attack.mitre.org/tactics/TA0005/"
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

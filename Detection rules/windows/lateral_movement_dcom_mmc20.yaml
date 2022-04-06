@@ -1,0 +1,71 @@
+ANPdata:
+- creation_date = "2021/8/10"
+- maturity = "production"
+# - query_schema_validation = false
+- updated_date = "2021/8/10"
+# - min_stack_version = "7.12.0"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Identifies the use of Distributed Component Object Model (DCOM) to run commands from a remote host, which are launched
+    via the MMC20 Application COM Object. This behavior may indicate an attacker abusing a DCOM application to move
+    laterally."
+
+# - false_positives:  ["""Werfault.exe will legitimately spawn when dns.exe crashes, but the DNS service is very stable and so this is a low
+    # occurring event. Denial of Service (DoS) attempts by intentionally crashing the service will also cause werfault.exe
+    # to spawn."""]
+
+# - interval: "60m"
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+# - note: """## Triage and analysis Investigating Unusual File Write Detection alerts from this rule indicate potential unusual/abnormal file writes from the DNS Server service process (`dns.exe`) after exploitation from CVE-2020-1350 (SigRed) has occurred. Here are some possible avenues of investigation - Post-exploitation, adversaries may write additional files or payloads to the system as additional discovery/exploitation/persistence mechanisms.- Any suspicious or abnormal files written from `dns.exe` should be reviewed and investigated with care.""""""
+
+- references: ["https://enigma0x3.net/2017/01/05/lateral-movement-using-the-mmc20-application-com-object/"]
+
+# - max_signals: 33
+
+- risk_score: 73
+
+- rule_id: "51ce96fb-9e52-4dad-b0ba-99b54440fc9a"
+
+- severity: "high"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Lateral Movement"]
+
+- type: "eql"
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1021",
+        name : "Remote Services",
+        reference : "https://attack.mitre.org/techniques/T1021/"
+      ],
+      tactic: [
+        id : "TA0008",
+        name : "Lateral Movement",
+        reference : "https://attack.mitre.org/tactics/TA0008/"]
+    ]
+  ]
+name: "Incoming DCOM Lateral Movement with MMC"
+index: anp-log-agentbase-winclient
+
+type: any
+eql:
+  "query": "sequence by host.id with maxspan=1m
+    [network where event.type == \"start\" and process.name : \"mmc.exe\" and
+      source.port >= 49152 and destination.port >= 49152 and (source.ip != \"127.0.0.1\" or source.ip != \"::1\") and
+      network.direction == \"incoming\" and network.transport == \"tcp\"
+    ] by process.entity_id
+    [process where event.type in (\"start\", \"process_started\") and process.parent.name : \"mmc.exe\"
+    ] by process.parent.entity_id"
+
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

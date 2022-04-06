@@ -1,0 +1,76 @@
+ANPdata:
+- creation_date = "2021/8/8"
+- maturity = "production"
+- updated_date = "2021/8/8"
+# - min_stack_version = "7.12.0"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Windows Component Object Model (COM) is an inter-process communication (IPC) component of the native Windows application
+    programming interface (API) that enables interaction between software objects or executable code. Xwizard can be used to
+    run a COM object created in registry to evade defensive counter measures."
+
+# - false_positives: ["Trusted SolarWinds child processes, verify process details such as network connections and file writes."]
+
+# - interval: "30m"
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+# - note: """## Triage and analysis
+#     AdFind.exe` is a legitimate domain query tool. Rule alerts should be investigated to identify if the user has a role that would explain using this tool and that it is being run from an expected directory and endpoint. Leverage the exception workflow in the Kibana Security App or Elasticsearch API to tune this rule to your environment."""
+
+- references: ["https://lolbas-project.github.io/lolbas/Binaries/Xwizard/", "http://www.hexacorn.com/blog/2017/07/31/the-wizard-of-x-oppa-plugx-style/"]
+
+# - max_signals: 33
+
+- risk_score: 47
+
+- rule_id: "1a6075b0-7479-450e-8fe7-b8b8438ac570"
+
+- severity: "medium"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Execution"]
+
+- type: "eql"
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1559",
+        name : "Inter-Process Communication",
+        reference : "https://attack.mitre.org/techniques/T1559/",
+        subtechnique: [
+          [id : "T1559.001",        
+          name : "Component Object Model",        
+          reference : "https://attack.mitre.org/techniques/T1559/001/"]
+        ]
+      ],
+      tactic: [
+        id : "TA0002",
+        name : "Execution",
+        reference : "https://attack.mitre.org/tactics/TA0002/"]
+    ]
+  ]
+
+name: "Execution of COM object via Xwizard"
+index: anp-log-agentbase-winclient
+
+type: any
+eql:
+  "query": "process where event.type in (\"start\", \"process_started\") and
+    process.pe.original_file_name : \"xwizard.exe\" and
+    (
+      (process.args : \"RunWizard\" and process.args : \"{*}\") or
+      (process.executable != null and
+        not process.executable : (\"C:\\\\Windows\\\\SysWOW64\\\\xwizard.exe\", \"C:\\\\Windows\\\\System32\\\\xwizard.exe\")
+      )
+    )"
+
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

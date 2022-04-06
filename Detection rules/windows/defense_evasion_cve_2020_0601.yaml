@@ -1,0 +1,57 @@
+ANPdata:
+- creation_date = "2021/8/2"
+- maturity = "production"
+- updated_date = "2021/8/2"
+
+ANPrule:
+- author: ["Elastic"]
+
+- description: "A spoofing vulnerability exists in the way Windows CryptoAPI (Crypt32.dll) validates Elliptic Curve Cryptography (ECC) certificates. An attacker could exploit the vulnerability by using a spoofed code-signing certificate to sign a malicious executable, making it appear the file was from a trusted, legitimate source."
+
+- language: "kuery"
+
+- license: "Elastic License v2"
+
+- references: ["https://posts.specterops.io/code-signing-certificate-cloning-attacks-and-defenses-6f98657fc6ec", "https://www.ired.team/offensive-security/persistence/t1130-install-root-certificate"]
+
+- risk_score: 21
+
+- rule_id: "56557cde-d923-4b88-adee-c61b3f3b5dc3"
+
+- severity: "low"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Defense Evasion"]
+
+- type: "query"
+
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1553",
+        name : "Subvert Trust Controls",
+        reference : "https://attack.mitre.org/techniques/T1553/",
+        subtechnique: [
+          id : "T1553.002",        
+          name : "Code Signing",        
+          reference : "https://attack.mitre.org/techniques/T1553/002/"]],
+      tactic: [
+        id : "TA0005",
+        name : "Defense Evasion",
+        reference : "https://attack.mitre.org/tactics/TA0005/"]
+    ]]
+
+name: Windows CryptoAPI Spoofing Vulnerability (CVE-2020-0601 - CurveBall)
+index: anp-log-agentbase-winclient-*
+type: frequency
+num_events: 1
+timeframe:
+  hours: 1
+kql:
+  query: {"query_string": {"query": "event.provider:\"Microsoft-Windows-Audit-CVE\" and message:\"[CVE-2020-0601]\"" }  }
+
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

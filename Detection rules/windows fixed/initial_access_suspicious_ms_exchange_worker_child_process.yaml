@@ -1,0 +1,64 @@
+ANPdata:
+- creation_date = "2021/8/10"
+- maturity = "production"
+# - query_schema_validation = false
+- updated_date = "2021/8/10"
+# - min_stack_version = "7.12.0"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Identifies suspicious processes being spawned by the Microsoft Exchange Server worker process (w3wp). This activity may
+    indicate exploitation activity or access to an existing web shell backdoor."
+
+# - false_positives:  ["""Legitimate processes may be spawned from the Microsoft Exchange Server Unified Messaging (UM) service. If known
+#     processes are causing false positives, they can be exempted from the rule."""]
+
+# - interval: "60m"
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+# - note: """"""
+
+- references: ["https://www.microsoft.com/security/blog/2021/03/02/hafnium-targeting-exchange-servers", "https://www.volexity.com/blog/2021/03/02/active-exploitation-of-microsoft-exchange-zero-day-vulnerabilities", "https://discuss.elastic.co/t/detection-and-response-for-hafnium-activity/266289"]
+
+# - max_signals: 33
+
+- risk_score: 73
+
+- rule_id: "f81ee52c-297e-46d9-9205-07e66931df26"
+
+- severity: "high"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Initial Access"]
+
+- type: "eql"
+- threat: [
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1190",
+        name : "Exploit Public-Facing Application",
+        reference : "https://attack.mitre.org/techniques/T1190/"],
+      tactic: [
+        id : "TA0001",
+        name : "Initial Access",
+        reference : "https://attack.mitre.org/tactics/TA0001/"]
+    ]
+  ]
+
+name: "Microsoft Exchange Worker Spawning Suspicious Processes"
+index: .ds-winlogbeat-8.0.0-2022.02.19-000001
+
+type: any
+eql:
+  "query": "process where event.type == \"start\" and
+    process.parent.name : \"w3wp.exe\" and process.parent.args : \"MSExchange*AppPool\" and
+    (process.name : (\"cmd.exe\", \"powershell.exe\", \"pwsh.exe\") or
+    process.pe.original_file_name : (\"cmd.exe\", \"powershell.exe\", \"pwsh.exe\"))"
+
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

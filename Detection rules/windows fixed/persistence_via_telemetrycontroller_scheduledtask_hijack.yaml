@@ -1,0 +1,70 @@
+ANPdata:
+- creation_date = "2021/8/11"
+- maturity = "production"
+# - query_schema_validation = false
+- updated_date = "2021/8/11"
+# - min_stack_version = "7.12.0"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Detects the successful hijack of Microsoft Compatibility Appraiser scheduled task to establish persistence with an
+    integrity level of system."
+
+# - false_positives:  ["""Legitimate local user creations may be done by a system or network administrator. Verify whether this is known
+    # behavior in your environment. Local user creations from unfamiliar users or hosts should be investigated. If known
+    # behavior is causing false positives, it can be exempted from the rule."""]
+
+# - interval: "60m"
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+# - note: """## Triage and analysis Decode the base64 encoded Tasks Actions registry value to investigate the task's configured action."""
+
+- references: ["https://www.trustedsec.com/blog/abusing-windows-telemetry-for-persistence/?utm_content=131234033&utm_medium=social&utm_source=twitter&hss_channel=tw-403811306"]
+
+# - max_signals: 33
+
+- risk_score: 73
+
+- rule_id: "68921d85-d0dc-48b3-865f-43291ca2c4f2"
+
+- severity: "high"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Persistence"]
+
+- type: "eql"
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1053",
+        name : "Scheduled Task/Job",
+        reference : "https://attack.mitre.org/techniques/T1053/"
+      ],
+      tactic: [
+        id : "TA0003",
+        name : "Persistence",
+        reference : "https://attack.mitre.org/tactics/TA0003/"]
+    ]
+  ]
+name: "Persistence via TelemetryController Scheduled Task Hijack"
+index: .ds-winlogbeat-8.0.0-2022.02.19-000001
+type: any
+eql:
+  "query": "process where event.type in (\"start\", \"process_started\") and
+    process.parent.name : \"CompatTelRunner.exe\" and process.args : \"-cv*\" and
+    not process.name : (\"conhost.exe\",
+                        \"DeviceCensus.exe\",
+                        \"CompatTelRunner.exe\",
+                        \"DismHost.exe\",
+                        \"rundll32.exe\",
+                        \"powershell.exe\")"
+
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

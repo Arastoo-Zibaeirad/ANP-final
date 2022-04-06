@@ -1,0 +1,62 @@
+ANPdata:
+- creation_date = "2021/08/08"
+- maturity = "production"
+- updated_date = "2021/08/08"
+
+ANPrule:
+- author = ["Elastic"]
+
+- description = """Adversaries may install a root certificate on a compromised system to avoid warnings when connecting to their command
+    and control servers. Root certificates are used in public key cryptography to identify a root certificate authority
+    (CA). When a root certificate is installed, the system or application will trust certificates in the root's chain of
+    trust that have been signed by the root certificate."""
+
+- false_positives = ["Certain applications may install root certificates for the purpose of inspecting SSL traffic."]
+
+- language = "kuery"
+
+- license = "Elastic License v2"
+
+- references = ["https://ss64.com/osx/security-cert.html"]
+
+- risk_score = 47
+
+- rule_id =  "bc1eeacf-2972-434f-b782-3a532b100d67"
+
+- severity = "medium"
+
+- tags =  ["Elastic", "Host", "macOS", "Threat Detection", "Defense Evasion"]
+
+- type = "query"
+
+name: "Attempt to Install Root Certificate"
+
+index: ["auditbeat-*", "logs-endpoint.events.*"]
+
+type: any
+
+kql: 
+  "query": {"query_string": {"query": "event.category:process and event.type:(start or process_started) and\n  process.name:security and process.args:\"add-trusted-cert\""}}
+
+threat:
+  - 01:
+    - threat_rule: 
+      - framework = "MITRE ATT&CK"
+    - technique:
+      - id = "T1553"
+      - name = "Subvert Trust Controls"
+      - reference = "https://attack.mitre.org/techniques/T1553/"
+      - subtechnique:
+        - id = "T1553.004"
+        - name = "Install Root Certificate"
+        - reference = "https://attack.mitre.org/techniques/T1553/004/"
+    - tactic:
+      - id = "TA0005"
+      - name =  "Defense Evasion"
+      - reference = "https://attack.mitre.org/tactics/TA0005/"
+
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

@@ -1,0 +1,54 @@
+ANPdata:
+- creation_date = "2021/08/08"
+- maturity = "production"
+- updated_date = "2021/08/08"
+
+ANPrule:
+- author = ["Elastic"]
+
+- description = """Identifies attempts to unload the Elastic Endpoint Security kernel extension via the kextunload command."""
+
+- language = "kuery"
+
+- license = "Elastic License v2"
+
+- risk_score = 73
+
+- rule_id = "70fa1af4-27fd-4f26-bd03-50b6af6b9e24"
+
+- severity = "high"
+
+- tags = ["Elastic", "Host", "macOS", "Threat Detection", "Defense Evasion"]
+
+- type = "query"
+
+name: "Attempt to Unload Elastic Endpoint Security Kernel Extension"
+
+index: ["auditbeat-*", "logs-endpoint.events.*"]
+
+type: any
+
+kql: 
+  "query": {"query_string": {"query": "event.category:process and event.type:(start or process_started) and\n process.name:kextunload and process.args:(\"/System/Library/Extensions/EndpointSecurity.kext\" or \"EndpointSecurity.kext\")"}}
+
+threat:
+  - 01:
+    - threat_rule: 
+      - framework = "MITRE ATT&CK"
+    - technique:
+      - id = "T1562"
+      - name = "Impair Defenses"
+      - reference = "https://attack.mitre.org/techniques/T1562/"
+      - subtechnique:
+        - id = "T1562.001"
+        - name = "Disable or Modify Tools"
+        - reference = "https://attack.mitre.org/techniques/T1562/001/"
+    - tactic:
+      - id = "TA0005"
+      - name =  "Defense Evasion"
+      - reference = "https://attack.mitre.org/tactics/TA0005/"
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

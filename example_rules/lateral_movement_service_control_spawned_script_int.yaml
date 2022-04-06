@@ -1,0 +1,67 @@
+ANPdata:
+- creation_date = "2021/8/10"
+- maturity = "production"
+# - query_schema_validation = false
+- updated_date = "2021/8/10"
+# - min_stack_version = "7.12.0"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Identifies Service Control (sc.exe) spawning from script interpreter processes to create, modify, or start services.
+    This could be indicative of adversary lateral movement but will be noisy if commonly done by admins."
+
+# - false_positives:  ["""PowerShell remoting is a dual-use protocol that can be used for benign or malicious activity. It's important to
+    # baseline your environment to determine the amount of noise to expect from this tool."""]
+
+# - interval: "60m"
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+# - note: """## Triage and analysis Decode the base64 encoded tasks actions registry value to investigate the task configured action."""
+
+# - references: ["https://blog.netspi.com/how-to-access-rdp-over-a-reverse-ssh-tunnel/"]
+
+# - max_signals: 33
+
+- risk_score: 21
+
+- rule_id: "e8571d5f-bea1-46c2-9f56-998de2d3ed95"
+
+- severity: "low"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Lateral Movement"]
+
+- type: "eql"
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1021",
+        name : "Remote Services",
+        reference : "https://attack.mitre.org/techniques/T1021/"
+      ],
+      tactic: [
+        id : "TA0008",
+        name : "Lateral Movement",
+        reference : "https://attack.mitre.org/tactics/TA0008/"]
+    ]
+  ]
+name: "Service Control Spawned via Script Interpreter"
+index: .ds-winlogbeat-8.0.0-2022.02.19-000001
+type: any
+eql:
+  "query": "process where event.type == \"start\" and
+    (process.name : \"sc.exe\" or process.pe.original_file_name == \"sc.exe\") and
+    process.parent.name : (\"cmd.exe\", \"wscript.exe\", \"rundll32.exe\", \"regsvr32.exe\",
+                          \"wmic.exe\", \"mshta.exe\",\"powershell.exe\", \"pwsh.exe\") and
+    process.args:(\"config\", \"create\", \"start\", \"delete\", \"stop\", \"pause\") and
+    /* exclude SYSTEM SID - look for service creations by non-SYSTEM user */
+    not user.id : \"S-1-5-18\""
+
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

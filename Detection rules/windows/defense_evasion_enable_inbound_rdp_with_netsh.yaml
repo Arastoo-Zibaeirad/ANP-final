@@ -1,0 +1,59 @@
+ANPdata:
+- creation_date = "2021/8/3"
+- maturity = "production"
+- updated_date = "2021/8/3"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Identifies use of the network shell utility (netsh.exe) to enable inbound Remote Desktop Protocol (RDP) connections in the Windows Firewall."
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+- risk_score: 47
+
+- rule_id: "074464f9-f30d-4029-8c03-0ed237fffec7"
+
+- severity: "medium"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Defense Evasion"]
+
+- type: "eql"
+
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1562",
+        name : "Impair Defenses",
+        reference : "https://attack.mitre.org/techniques/T1562/",
+        subtechnique: [
+          [id : "T1562.001",        
+          name : "Disable or Modify Tools",        
+          reference : "https://attack.mitre.org/techniques/T1562/001/"],
+
+        ]
+      ],
+      tactic: [
+        id : "TA0005",
+        name : "Defense Evasion",
+        reference : "https://attack.mitre.org/tactics/TA0005/"]
+    ]
+  ]
+  
+name: "Remote Desktop Enabled in Windows Firewall"
+index: anp-log-agentbase-winclient
+type: any
+eql:
+  "query": "process where event.type in (\"start\", \"process_started\") and
+    (process.name : \"netsh.exe\" or process.pe.original_file_name == \"netsh.exe\") and
+    process.args : (\"localport=3389\", \"RemoteDesktop\", \"group=\\\"remote desktop\\\"\") and
+    process.args : (\"action=allow\", \"enable=Yes\", \"enable\")"
+
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

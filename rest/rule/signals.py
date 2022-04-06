@@ -1,76 +1,79 @@
-# from .models import Rule, Query, Config, Strategy
-
-# def change_my_name_plz (sender, instance, created, **kwargs):
-#     if created:
-#         Rule.objects.create(name='something', index_name='sth')
-
-
-
-# from django.db.models.signals import post_save
-# from django.contrib.auth.models import Strategy
-# from django.dispatch import receiver
-# from .models import Rule
- 
- 
-# @receiver(post_save, sender=Strategy)
-# def create_profile(sender, instance, created, **kwargs):
-#     if created:
-#         Rule.objects.create(strategy=instance)
-  
-# @receiver(post_save, sender=Strategy)
-# def save_profile(sender, instance, **kwargs):
-#         instance.rule.save()
-
-
 from django.db.models.query_utils import Q
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from .models import Rule, Strategy, Query, Order
 import yaml
 from django.db.models.signals import m2m_changed
-import random
-import json
 import requests
-##we say who is send signals to this function(create_rule)... @receiver myani daryaft konandeye in signal function create_rule ast
-@receiver(post_save, sender=Rule)
+import time
+
+#we say who is send signals to this function(create_rule)... @receiver myani daryaft konandeye in signal function create_rule ast
+@receiver(post_save, sender=Query)
 def create_yaml(sender, instance, created, **kwargs):
     """
     after creating an object in rule, we want to create a yaml file 
     """
-    if created:
-        dict_file = """[{'ANPdata' : ['creation_date = %s', 'maturity = production', 'updated_date = %s']},
-                        {'ANPrule' : [{'author': ["Elastic"]}, {'language': "eql"}, {'rule_id': "55"}, {'threat': 'ghgf'}]},
-                        {'name': \" %s \"},
-                        {'index': "%s"},
-                        {'type': "any"},
-                        {'query': [{'query': %s}]}]"""%(instance.create_time, instance.modified_time, instance.name, instance.index_name, instance.total_method()[1])
+    instance.rule.total = instance.rule.total_method()[1]
+    
+    @receiver(post_save, sender=Rule)
+    def c2(sender, instance, created, **kwargs):
+
+        dict_file = """
+        ANPdata:
+        - creation_date = "%s"
+        - maturity = "production"
+        - updated_date = "%s"
+        
+        ANPrule:
+        - author: ["ANP"]
+        - language : "eql"
+        
+        name: "%s"
+
+        index: %s
+
+        type: frequency
+        num_events: 1
+        timeframe:
+          hours: 1
+        
+        eql:
+          query: "%s"
+
+        alert:
+        - "slack"
+
+        slack:
+        slack_webhook_url: "https://hooks.slack.com/services/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"
+
+        """%(instance.create_time, instance.modified_time, instance.name, instance.index_name, instance.total)
+
+        dict_file = yaml.safe_load(dict_file)       
+        with open(f'/root/Elastalert/elastalert/example_rules/Aras_rule_{instance.name}.yaml', 'w') as file:
+            yaml.dump(dict_file, file, width=1000)   
+        
+
+# @receiver(post_save, sender=Strategy)
+# def create_yaml_strategy(sender, instance, created, **kwargs):
+    
+#     if created:
+#         print("created",created)
+#         dict_file = """[{'ANPdata' : ['creation_date = %s', 'maturity = production', 'updated_date = %s']},
+#                         {'ANPrule' : [{'author': ["Elastic"]}, {'language': "eql"}, {'rule_id': "55"}, {'threat': 'ghgf'}]},
+#                         {'name': \" %s \"},
+#                         {'index': "%s"},
+#                         {'type': "any"},
+#                         {'eql' : {'query': "%s"}}]"""%(instance.create_time, instance.modified_time, instance.strategy_name, instance.strategy_index(), instance.final_query())
                 
-        dict_file = yaml.safe_load(dict_file)          
-        with open(f'{instance.name}.yaml', 'w') as file:
-            yaml.dump(dict_file, file)
-
-
-
-@receiver(post_save, sender=Strategy)
-def create_yaml_strategy(sender, instance, created, **kwargs):
-    """
-    after creating an object in strategy, we want to create a yaml file 
-    """
-    if created:
-        print("created",created)
-        dict_file = """[{'ANPdata' : ['creation_date = %s', 'maturity = production', 'updated_date = %s']},
-                        {'ANPrule' : [{'author': ["Elastic"]}, {'language': "eql"}, {'rule_id': "55"}, {'threat': 'ghgf'}]},
-                        {'name': \" %s \"},
-                        {'index': "%s"},
-                        {'type': "any"},
-                        {'query': [{'query': %s}]}]"""%(instance.create_time, instance.modified_time, instance.strategy_name, instance.strategy_alias, instance.strategy_total)
-                
-        dict_file = yaml.safe_load(dict_file)          
-        with open(f'{instance.strategy_name}.yaml', 'w') as file:
-            yaml.dump(dict_file, file)
-    else:
-        Strategy.objects.update()
-        # Strategy.objects.filter(pk=b.id).update()
+#         dict_file = yaml.safe_load(dict_file)          
+#         with open(f'D:\\Downloads\\VSCode\\elastalert\\rest\\Aras_strategy_{instance.strategy_name}.yaml', 'w') as file:
+#             yaml.dump(dict_file, file, width=1000)
+        
+#         print("@@@",instance.strategy_index())
+#         print("@@@",instance.strategy_name)
+#         print("@@@",instance.final_query())
+        # else:
+        #     Strategy.objects.update()
 
 
 # @receiver(post_save, sender=Query)

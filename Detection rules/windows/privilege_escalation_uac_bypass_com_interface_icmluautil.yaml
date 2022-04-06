@@ -1,0 +1,70 @@
+ANPdata:
+- creation_date = "2021/8/12"
+- maturity = "production"
+# - query_schema_validation = false
+- updated_date = "2021/8/12"
+# - min_stack_version = "7.12.0"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Identifies User Account Control (UAC) bypass via hijacking DiskCleanup Scheduled Task. Attackers bypass UAC to
+    stealthily execute code with elevated permissions."
+
+# - false_positives:  ["""Uninstall or manual deletion of a legitimate printing driver files. Verify the printer file metadata such as
+    # manufacturer and signature information."""]
+
+# - interval: "60m"
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+# - note: """## Threat intel Refer to CVEs, CVE-2020-1048 and CVE-2020-1337 for further information on the vulnerability and exploit. Verify that the relevant system is patched."""
+
+# - references: ["https://swapcontext.blogspot.com/2020/11/uac-bypasses-from-comautoapprovallist.html"]
+
+# - max_signals: 33
+
+- risk_score: 47
+
+- rule_id: "1dcc51f6-ba26-49e7-9ef4-2655abb2361e"
+
+- severity: "medium"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Privilege Escalation"]
+
+- type: "eql"
+
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1548",
+        name : "Abuse Elevation Control Mechanism",
+        reference : "https://attack.mitre.org/techniques/T1548/",
+        subtechnique: [
+          [id : "T1548.002",        
+          name : "Bypass User Account Control",        
+          reference : "https://attack.mitre.org/techniques/T1548/002/"]
+        ]
+      ],
+      tactic: [
+        id : "TA0004",
+        name : "Privilege Escalation",
+        reference : "https://attack.mitre.org/tactics/TA0004/"]]
+  ]
+
+name: "UAC Bypass via ICMLuaUtil Elevated COM Interface"
+index: anp-log-agentbase-winclient
+type: any
+eql:
+  "query": "process where event.type in (\"start\", \"process_started\") and
+    process.parent.name == \"dllhost.exe\" and
+    process.parent.args in (\"/Processid:{3E5FC7F9-9A51-4367-9063-A120244FBEC7}\", \"/Processid:{D2E7041B-2927-42FB-8E9F-7CE93B6DC937}\") and
+    process.pe.original_file_name != \"WerFault.exe\""
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

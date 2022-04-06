@@ -1,0 +1,83 @@
+ANPdata:
+- creation_date = "2021/8/10"
+- maturity = "production"
+# - query_schema_validation = false
+- updated_date = "2021/8/10"
+# - min_stack_version = "7.12.0"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Identifies processes executed via Windows Management Instrumentation (WMI) on a remote host. This could be indicative of
+    adversary lateral movement, but could be noisy if administrators use WMI to remotely manage hosts."
+
+# - false_positives:  ["""WinRM is a dual-use protocol that can be used for benign or malicious activity. It's important to baseline your
+    # environment to determine the amount of noise to expect from this tool."""]
+
+# - interval: "60m"
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+# - note: """## Triage and analysis Investigating Large DNS ResponsesDetection alerts from this rule indicate an attempt was made to exploit CVE-2020-1350 (SigRed) through the use of large DNS responses on a Windows DNS server. Here are some possible avenues of investigation - Investigate any corresponding Intrusion Detection Signatures (IDS) alerts that can validate this detection alert.- Examine the `dns.question_type` network fieldset with a protocol analyzer, such as Zeek, Packetbeat, or Suricata, for `SIG` or `RRSIG` data.- Validate the patch level and OS of the targeted DNS server to validate the observed activity was not large-scale Internet vulnerability scanning.- Validate that the source of the network activity was not from an authorized vulnerability scan or compromise assessment."""
+
+# - references: ["https://blog.menasec.net/2020/08/new-trick-to-detect-lateral-movement.html"]
+
+# - max_signals: 33
+
+- risk_score: 47
+
+- rule_id: "f3475224-b179-4f78-8877-c2bd64c26b88"
+
+- severity: "medium"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Lateral Movement"]
+
+- type: "eql"
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      tactic: [
+        id : "TA0008",
+        name : "Lateral Movement",
+        reference : "https://attack.mitre.org/tactics/TA0008/"]
+    ],
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1047",
+        name : "Windows Management Instrumentation",
+        reference : "https://attack.mitre.org/techniques/T1047/"
+      ],
+      tactic: [
+        id : "TA0002",
+        name : "Execution",
+        reference : "https://attack.mitre.org/tactics/TA0002/"]
+    ]
+  ]
+
+name: "WMI Incoming Lateral Movement"
+index: anp-log-agentbase-winclient
+
+type: any
+eql:
+  "query": "sequence by host.id with maxspan = 2s
+    /* Accepted Incoming RPC connection by Winmgmt service */
+      [network where process.name : \"svchost.exe\" and network.direction == \"incoming\" and
+      source.ip != \"127.0.0.1\" and source.ip != \"::1\" and 
+      source.port >= 49152 and destination.port >= 49152
+      ]
+      /* Excluding Common FPs Nessus and SCCM */
+      [process where event.type in (\"start\", \"process_started\") and process.parent.name : \"WmiPrvSE.exe\" and
+      not process.args : (\"C:\\\\windows\\\\temp\\\\nessus_*.txt\", 
+                          \"C:\\\\windows\\\\TEMP\\\\nessus_*.TMP\", 
+                          \"C:\\\\Windows\\\\CCM\\\\SystemTemp\\\\*\", 
+                          \"C:\\\\Windows\\\\CCMCache\\\\*\", 
+                          \"C:\\\\CCM\\\\Cache\\\\*\")
+      ]"
+
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

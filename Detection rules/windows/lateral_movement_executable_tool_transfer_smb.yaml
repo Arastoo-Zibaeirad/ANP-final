@@ -1,0 +1,69 @@
+ANPdata:
+- creation_date = "2021/8/10"
+- maturity = "production"
+# - query_schema_validation = false
+- updated_date = "2021/8/10"
+# - min_stack_version = "7.12.0"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Identifies the creation or change of a Windows executable file over network shares. Adversaries may transfer tools or
+    other files between systems in a compromised environment."
+
+# - false_positives:  ["""Environments that leverage DNS responses over 60k bytes will result in false positives - if this traffic is
+    # predictable and expected, it should be filtered out. Additionally, this detection rule could be triggered by an
+    # authorized vulnerability scan or compromise assessment."""]
+
+# - interval: "60m"
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+# - note: """## Triage and analysis Investigating Large DNS ResponsesDetection alerts from this rule indicate an attempt was made to exploit CVE-2020-1350 (SigRed) through the use of large DNS responses on a Windows DNS server. Here are some possible avenues of investigation - Investigate any corresponding Intrusion Detection Signatures (IDS) alerts that can validate this detection alert.- Examine the `dns.question_type` network fieldset with a protocol analyzer, such as Zeek, Packetbeat, or Suricata, for `SIG` or `RRSIG` data.- Validate the patch level and OS of the targeted DNS server to validate the observed activity was not large-scale Internet vulnerability scanning.- Validate that the source of the network activity was not from an authorized vulnerability scan or compromise assessment."""
+
+# - references: ["https://bitsadm.in/blog/spying-on-users-using-rdp-shadowing", "https://swarm.ptsecurity.com/remote-desktop-services-shadowing/"]
+
+# - max_signals: 33
+
+- risk_score: 47
+
+- rule_id: "58bc134c-e8d2-4291-a552-b4b3e537c60b"
+
+- severity: "medium"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Lateral Movement"]
+
+- type: "eql"
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1570",
+        name : "Lateral Tool Transfer",
+        reference : "https://attack.mitre.org/techniques/T1570/"
+      ],
+      tactic: [
+        id : "TA0008",
+        name : "Lateral Movement",
+        reference : "https://attack.mitre.org/tactics/TA0008/"]
+    ]
+  ]
+name: "Lateral Tool Transfer"
+index: anp-log-agentbase-winclient
+
+type: any
+eql:
+  "query": "sequence by host.id with maxspan=30s
+    [network where event.type == \"start\" and process.pid == 4 and destination.port == 445 and
+    network.direction == \"incoming\" and network.transport == \"tcp\" and
+    source.ip != \"127.0.0.1\" and source.ip != \"::1\"
+    ] by process.entity_id
+    /* add more executable extensions here if they are not noisy in your environment */
+    [file where event.type in (\"creation\", \"change\") and process.pid == 4 and file.extension : (\"exe\", \"dll\", \"bat\", \"cmd\")] by process.entity_id"
+
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

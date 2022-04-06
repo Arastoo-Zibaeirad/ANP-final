@@ -1,0 +1,88 @@
+ANPdata:
+- creation_date = "2021/8/11"
+- maturity = "production"
+# - query_schema_validation = false
+- updated_date = "2021/8/11"
+# - min_stack_version = "7.12.0"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Identifies files written to or modified in the startup folder by commonly abused processes. Adversaries may use this
+    technique to maintain persistence."
+
+# - false_positives:  ["""A legitimate VBA for Outlook is usually configured interactively via OUTLOOK.EXE."""]
+
+# - interval: "60m"
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+# - note: """## Triage and analysis Decode the base64 encoded Tasks Actions registry value to investigate the task's configured action."""
+
+# - references: ["https://www.microsoftpressstore.com/articles/article.aspx?p=2762082&seqNum=2"]
+
+# - max_signals: 33
+
+- risk_score: 47
+
+- rule_id: "440e2db4-bc7f-4c96-a068-65b78da59bde"
+
+- severity: "medium"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Persistence"]
+
+- type: "eql"
+
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1547",
+        name : "Boot or Logon Autostart Execution",
+        reference : "https://attack.mitre.org/techniques/T1547/",
+        subtechnique: [
+          [id : "T1547.001",        
+          name : "Registry Run Keys / Startup Folder",        
+          reference : "https://attack.mitre.org/techniques/T1547/001/"]
+        ]
+      ],
+      tactic: [
+        id : "TA0003",
+        name : "Persistence",
+        reference : "https://attack.mitre.org/tactics/TA0003/"]
+    ]
+  ]
+
+name: "Shortcut File Written or Modified for Persistence"
+index: .ds-winlogbeat-8.0.0-2022.02.19-000001
+type: any
+eql:
+  "query": "file where event.type != \"deletion\" and
+    user.domain != \"NT AUTHORITY\" and
+    file.path : (\"C:\\\\Users\\\\*\\\\AppData\\\\Roaming\\\\Microsoft\\\\Windows\\\\Start Menu\\\\Programs\\\\Startup\\\\*\", 
+                \"C:\\\\ProgramData\\\\Microsoft\\\\Windows\\\\Start Menu\\\\Programs\\\\StartUp\\\\*\") and
+    process.name : (\"cmd.exe\",
+                    \"powershell.exe\",
+                    \"wmic.exe\",
+                    \"mshta.exe\",
+                    \"pwsh.exe\",
+                    \"cscript.exe\",
+                    \"wscript.exe\",
+                    \"regsvr32.exe\",
+                    \"RegAsm.exe\",
+                    \"rundll32.exe\",
+                    \"EQNEDT32.EXE\",
+                    \"WINWORD.EXE\",
+                    \"EXCEL.EXE\",
+                    \"POWERPNT.EXE\",
+                    \"MSPUB.EXE\",
+                    \"MSACCESS.EXE\",
+                    \"iexplore.exe\",
+                    \"InstallUtil.exe\")"
+
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

@@ -1,0 +1,56 @@
+ANPdata:
+- creation_date = "2021/08/08"
+- maturity = "production"
+- updated_date = "2021/08/08"
+
+ANPrule:
+- author = ["Elastic"]
+
+- description = """Finder Sync plugins enable users to extend Finder’s functionality by modifying the user interface. Adversaries may abuse
+    this feature by adding a rogue Finder Plugin to repeatedly execute malicious payloads for persistence."""
+
+- false_positives = ["Trusted Finder Sync Plugins"]
+
+- language = "eql"
+
+- license = "Elastic License v2"
+
+- references = [ """    https://github.com/specterops/presentations/raw/master/Leo    Pitt/Hey_Im_Still_in_Here_Modern_macOS_Persistence_SO-CON2020.pdf    """]
+
+- risk_score = 47
+
+- rule_id = "37f638ea-909d-4f94-9248-edd21e4a9906"
+
+- severity = "medium"
+
+- tags = ["Elastic", "Host", "macOS", "Threat Detection", "Persistence"]
+
+- type = "eql"
+
+name: "Finder Sync Plugin Registered and Enabled"
+
+index: ["auditbeat-*", "logs-endpoint.events.*"]
+
+type: any
+
+eql: 
+  "query": "sequence by host.id, user.id with maxspan = 5s  [process where event.type in (\"start\", \"process_started\") and process.name : \"pluginkit\" and process.args : \"-a\"]  [process where event.type in (\"start\", \"process_started\") and process.name : \"pluginkit\" and\n    process.args : \"-e\" and process.args : \"use\" and process.args : \"-i\" and\n    not process.args :    (      \"com.google.GoogleDrive.FinderSyncAPIExtension\",      \"com.google.drivefs.findersync\",      \"com.boxcryptor.osx.Rednif\",      \"com.adobe.accmac.ACCFinderSync\",      \"com.microsoft.OneDrive.FinderSync\",      \"com.insynchq.Insync.Insync-Finder-Integration\",      \"com.box.desktop.findersyncext\"    )]"
+
+threat:
+  - 01:
+    - threat_rule: 
+      - framework = "MITRE ATT&CK"
+    - technique:
+      - id = "T1543"
+      - name = "Create or Modify System Process"
+      - reference = "https://attack.mitre.org/techniques/T1543/"
+    - tactic:
+      - id = "TA0003"
+      - name = "Persistence"
+      - reference = "https://attack.mitre.org/tactics/TA0003/"
+
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

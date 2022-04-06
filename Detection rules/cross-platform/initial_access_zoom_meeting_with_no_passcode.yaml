@@ -1,0 +1,60 @@
+ANPdata:
+- creation_date = "2021/07/28"
+- maturity = "production"
+- updated_date = "2021/07/28"
+
+ANPrule:
+- author = ["Elastic"]
+
+- description = """
+    This rule identifies Zoom meetings that are created without a passcode. Meetings without a passcode are susceptible to
+    Zoombombing. Zoombombing is carried out by taking advantage of Zoom sessions that are not protected with a passcode.
+    Zoombombing refers to the unwanted, disruptive intrusion, generally by Internet trolls and hackers, into a video
+    conference call. In a typical Zoombombing incident, a teleconferencing session is hijacked by the insertion of material
+    that is lewd, obscene, racist, or antisemitic in nature, typically resulting of the shutdown of the session."""
+
+- language = "kuery"
+
+- license = "Elastic License v2"
+
+- note = note = """## Config. The Zoom Filebeat module or similarly structured data is required to be compatible with this rule."""
+
+- references = ["https://blog.zoom.us/a-message-to-our-users/","https://www.fbi.gov/contact-us/field-offices/boston/news/press-releases/fbi-warns-of-teleconferencing-and-online-classroom-hijacking-during-covid-19-pandemic"]
+
+- risk_score = 47
+
+- rule_id = "58ac2aa5-6718-427c-a845-5f3ac5af00ba"
+
+- severity = "medium"
+
+- tags = ["Elastic",    "Application",    "Communication",    "Zoom",    "Continuous Monitoring",    "SecOps",    "Configuration Audit"]
+
+- type = "query"
+
+name: "Zoom Meeting with no Passcode"
+
+index: ["filebeat-*"]
+
+type: any
+
+kql:
+  "event.type:creation and event.module:zoom and event.dataset:zoom.webhook and\n  event.action:meeting.created and not zoom.meeting.password:*"
+
+threat:
+  - 01:
+    - threat_rule: 
+      - framework = "MITRE ATT&CK"
+    - technique: 
+      - id = "T1190"
+      - name = "Exploit Public-Facing Application"
+      - reference = "https://attack.mitre.org/techniques/T1190/"
+    - tactic:
+      - id = "TA0001"
+      - name = "Initial Access"
+      - reference = "https://attack.mitre.org/tactics/TA0001/"
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

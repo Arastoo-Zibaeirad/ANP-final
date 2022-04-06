@@ -1,0 +1,65 @@
+ANPdata:
+- creation_date = "2021/8/7"
+- maturity = "production"
+- updated_date = "2021/8/7"
+# - min_stack_version = "7.12.0"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Discovery of remote system information using built-in commands, which may be used to mover laterally."
+
+# - false_positives: ["If the domains listed in this rule are used as part of an authorized workflow, this rule will be triggered by those
+#     events. Validate that this is expected activity and tune the rule to fit your environment variables."]
+
+# - interval: "30m"
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+# - note: """## Triage and analysis
+#     AdFind.exe` is a legitimate domain query tool. Rule alerts should be investigated to identify if the user has a role that would explain using this tool and that it is being run from an expected directory and endpoint. Leverage the exception workflow in the Kibana Security App or Elasticsearch API to tune this rule to your environment."""
+
+# - references: ["https://community.jisc.ac.uk/blogs/csirt/article/trickbot-analysis-and-mitigation", "https://www.cybereason.com/blog/dropping-anchor-from-a-trickbot-infection-to-the-discovery-of-the-anchor-malware"]
+
+# - max_signals: 33
+
+- risk_score: 21
+
+- rule_id: "0635c542-1b96-4335-9b47-126582d2c19a"
+
+- severity: "low"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Discovery"]
+
+- type: "eql"
+
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1018",
+        name : "Remote System Discovery",
+        reference : "https://attack.mitre.org/techniques/T1018/"],
+  
+      tactic: [
+        id : "TA0007",
+        name : "Discovery",
+        reference : "https://attack.mitre.org/tactics/TA0007/"]
+    ]
+  ]
+
+name: "Remote System Discovery Commands"
+index: anp-log-agentbase-winclient
+type: any
+eql:
+  "query": "process where event.type in (\"start\", \"process_started\") and
+    (process.name : \"nbtstat.exe\" and process.args : (\"-n\", \"-s\")) or
+    (process.name : \"arp.exe\" and process.args : \"-a\")"
+
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

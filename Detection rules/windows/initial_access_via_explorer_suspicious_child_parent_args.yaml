@@ -1,0 +1,84 @@
+ANPdata:
+- creation_date = "2021/8/10"
+- maturity = "production"
+# - query_schema_validation = false
+- updated_date = "2021/8/10"
+# - min_stack_version = "7.12.0"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Identifies a suspicious Windows explorer child process. Explorer.exe can be abused to launch malicious scripts or
+    executables from a trusted parent process."
+
+# - false_positives:  ["""Werfault.exe will legitimately spawn when dns.exe crashes, but the DNS service is very stable and so this is a low
+    # occurring event. Denial of Service (DoS) attempts by intentionally crashing the service will also cause werfault.exe
+    # to spawn."""]
+
+# - interval: "60m"
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+# - note: """## Triage and analysis Investigating Unusual File Write Detection alerts from this rule indicate potential unusual/abnormal file writes from the DNS Server service process (`dns.exe`) after exploitation from CVE-2020-1350 (SigRed) has occurred. Here are some possible avenues of investigation - Post-exploitation, adversaries may write additional files or payloads to the system as additional discovery/exploitation/persistence mechanisms.- Any suspicious or abnormal files written from `dns.exe` should be reviewed and investigated with care.""""""
+
+# - references: ["https://research.checkpoint.com/2020/resolving-your-way-into-domain-admin-exploiting-a-17-year-old-bug-in-windows-dns-servers/", "https://msrc-blog.microsoft.com/2020/07/14/july-2020-security-update-cve-2020-1350-vulnerability-in-windows-domain-name-system-dns-server/"]
+
+# - max_signals: 33
+
+- risk_score: 47
+
+- rule_id: "9a5b4e31-6cde-4295-9ff7-6be1b8567e1b"
+
+- severity: "medium"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Initial Access"]
+
+- type: "eql"
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1566",
+        name : "Phishing",
+        reference : "https://attack.mitre.org/techniques/T1566/",
+        subtechnique: [
+          [id : "T1566.001",        
+          name : "Spearphishing Attachment",        
+          reference : "https://attack.mitre.org/techniques/T1566/001/"],
+          [id : "T1566.002",        
+          name : "Spearphishing Link",        
+          reference : "https://attack.mitre.org/techniques/T1566/002/"]
+        ]
+      ],
+      tactic: [
+        id : "TA0001",
+        name : "Initial Access",
+        reference : "https://attack.mitre.org/tactics/TA0001/"]
+    ]
+  ]
+name: "Suspicious Explorer Child Process"
+index: anp-log-agentbase-winclient
+
+type: any
+eql:
+  "query": "process where event.type in (\"start\", \"process_started\") and
+    (
+    process.name : (\"cscript.exe\", \"wscript.exe\", \"powershell.exe\", \"rundll32.exe\", \"cmd.exe\", \"mshta.exe\", \"regsvr32.exe\") or
+    process.pe.original_file_name in (\"cscript.exe\", \"wscript.exe\", \"PowerShell.EXE\", \"RUNDLL32.EXE\", \"Cmd.Exe\", \"MSHTA.EXE\", \"REGSVR32.EXE\")
+    ) and
+    /* Explorer started via DCOM */
+    process.parent.name : \"explorer.exe\" and process.parent.args : \"-Embedding\" and
+    not process.parent.args:
+            (
+              /* Noisy CLSID_SeparateSingleProcessExplorerHost Explorer COM Class IDs   */
+              \"/factory,{5BD95610-9434-43C2-886C-57852CC8A120}\",
+              \"/factory,{ceff45ee-c862-41de-aee2-a022c81eda92}\"
+            )"
+
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

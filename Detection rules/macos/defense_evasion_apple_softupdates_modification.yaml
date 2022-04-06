@@ -1,0 +1,60 @@
+ANPdata:
+- creation_date = "2021/08/08"
+- maturity = "production"
+- updated_date = "2021/08/08"
+
+ANPrule:
+- author = ["Elastic"]
+
+- description = """Identifies changes to the SoftwareUpdate preferences using the built-in defaults command. Adversaries may abuse this in
+    an attempt to disable security updates."""
+
+- false_positives = ["Authorized SoftwareUpdate Settings Changes"]
+
+- language = "kuery"
+
+- license = "Elastic License v2"
+
+- references = ["https://blog.checkpoint.com/2017/07/13/osxdok-refuses-go-away-money/"]
+
+- risk_score = 47
+
+- rule_id =  "f683dcdf-a018-4801-b066-193d4ae6c8e5"
+
+- severity = "medium"
+
+- tags =  ["Elastic", "Host", "macOS", "Threat Detection", "Defense Evasion"]
+
+- type = "query"
+
+name: "SoftwareUpdate Preferences Modification"
+
+index: ["auditbeat-*", "logs-endpoint.events.*"]
+
+type: any
+
+kql:
+  "query": {"query_string": {"query": "event.category: process and event.type:(start or process_started) and\n process.name: defaults and\n  process.args:(write and \"-bool\" and \"(com.apple.SoftwareUpdate or /Library/Preferences/com.apple.SoftwareUpdate.plist)\" and not \"(TRUE or true)\")"}}
+
+threat:
+  - 01:
+    - threat_rule: 
+      - framework = "MITRE ATT&CK"
+    - technique:
+      - id = "T1562"
+      - name = "Impair Defenses"
+      - reference = "https://attack.mitre.org/techniques/T1562/"
+      - subtechnique:
+        - id = "T1562.001"
+        - name = "Disable or Modify Tools"
+        - reference = "https://attack.mitre.org/techniques/T1562/001/"
+    - tactic:
+      - id = "TA0005"
+      - name =  "Defense Evasion"
+      - reference = "https://attack.mitre.org/tactics/TA0005/"
+
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

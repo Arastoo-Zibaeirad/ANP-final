@@ -1,0 +1,55 @@
+ANPdata:
+- creation_date = "2021/8/1"
+- maturity = "production"
+- updated_date = "2021/8/1"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Identifies the Windows Defender configuration utility (MpCmdRun.exe) being used to download a remote file."
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+- references: ["https://twitter.com/mohammadaskar2/status/1301263551638761477", "https://www.bleepingcomputer.com/news/microsoft/microsoft-defender-can-ironically-be-used-to-download-malware/"]
+
+- risk_score: 47
+
+- note: "## Triage and analysis### Investigating Remote File Download via MpCmdRun Verify details such as the parent process, URL reputation, and downloaded file details. Additionally, `MpCmdRun` logs this information in the Appdata Temp folder in `MpCmdRun.log`."
+
+- rule_id: "c6453e73-90eb-4fe7-a98c-cde7bbfc504a"
+
+- severity: "medium"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Command and Control"]
+
+- type: "eql"
+
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1105",
+        name : "Ingress Tool Transfer",
+        reference : "https://attack.mitre.org/techniques/T1105/"],
+      tactic: [
+        id : "TA0011",
+        name : "Command and Control",
+        reference : "https://attack.mitre.org/tactics/TA0011/"]]]
+
+name: Remote File Download via MpCmdRun
+index: .ds-winlogbeat-8.0.0-2022.02.19-000001
+
+type: frequency
+num_events: 1
+timeframe:
+  hours: 1
+
+eql:
+  "query": "process where event.type == \"start\" and\n  (process.name : \"MpCmdRun.exe\" or process.pe.original_file_name == \"MpCmdRun.exe\") and\n   process.args : \"-DownloadFile\" and process.args : \"-url\" and process.args : \"-path\""
+
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

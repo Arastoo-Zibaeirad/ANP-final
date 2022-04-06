@@ -1,0 +1,64 @@
+ANPdata:
+- creation_date = "2021/8/11"
+- maturity = "production"
+# - query_schema_validation = false
+- updated_date = "2021/8/11"
+# - min_stack_version = "7.12.0"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Identifies attempts to create new local users. This is sometimes done by attackers to increase access to a system or
+    domain."
+
+# - false_positives:  ["""Legitimate scheduled tasks running third party software."""]
+
+# - interval: "60m"
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+# - note: """## Triage and analysis Decode the base64 encoded Tasks Actions registry value to investigate the task's configured action."""
+
+# - references: ["https://docs.microsoft.com/en-us/windows-server/identity/ad-ds/plan/security-best-practices/appendix-b--privileged-accounts-and-groups-in-active-directory"]
+
+# - max_signals: 33
+
+- risk_score: 21
+
+- rule_id: "1aa9181a-492b-4c01-8b16-fa0735786b2b"
+
+- severity: "low"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Persistence"]
+
+- type: "eql"
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1136",
+        name : "Create Account",
+        reference : "https://attack.mitre.org/techniques/T1136/"
+      ],
+      tactic: [
+        id : "TA0003",
+        name : "Persistence",
+        reference : "https://attack.mitre.org/tactics/TA0003/"]
+    ]
+  ]
+name: "User Account Creation"
+index: .ds-winlogbeat-8.0.0-2022.02.19-000001
+type: any
+eql:
+  "query": "process where event.type in (\"start\", \"process_started\") and
+    process.name : (\"net.exe\", \"net1.exe\") and
+    not process.parent.name : \"net.exe\" and
+    (process.args : \"user\" and process.args : (\"/ad\", \"/add\"))"
+
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

@@ -1,0 +1,54 @@
+ANPdata:
+- creation_date = "2021/08/08"
+- maturity = "production"
+- updated_date = "2021/08/08"
+
+ANPrule:
+- author = ["Elastic"]
+
+- description = """Identifies the use of the mount_apfs command to mount the entire file system through Apple File System (APFS) snapshots
+    as read-only and with the noowners flag set. This action enables the adversary to access almost any file in the file
+    system, including all user data and files protected by Apple’s privacy framework (TCC)."""
+
+- language = "kuery"
+
+- license = "Elastic License v2"
+
+- references = ["https://theevilbit.github.io/posts/cve_2020_9771/"]
+
+- risk_score = 73
+
+- rule_id = "b00bcd89-000c-4425-b94c-716ef67762f6"
+
+- severity = "high"
+
+- tags = ["Elastic", "Host", "macOS", "Threat Detection", "Defense Evasion"]
+
+- type = "query"
+
+name: "TCC Bypass via Mounted APFS Snapshot Access"
+
+index: ["auditbeat-*", "logs-endpoint.events.*"]
+
+type: any
+
+kql: 
+  "query": {"query_string": {"query": "event.category : process and event.type : (start or process_started) and process.name : mount_apfs and\n  process.args : \"(/System/Volumes/Data and noowners)\""}}
+
+threat:
+  - 01:
+    - threat_rule: 
+      - framework = "MITRE ATT&CK"
+    - technique:
+      - id = "T1006"
+      - name = "Direct Volume Access"
+      - reference = "https://attack.mitre.org/techniques/T1006/"
+    - tactic:
+      - id = "TA0005"
+      - name =  "Defense Evasion"
+      - reference = "https://attack.mitre.org/tactics/TA0005/"
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

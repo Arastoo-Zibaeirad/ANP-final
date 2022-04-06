@@ -1,0 +1,89 @@
+ANPdata:
+- creation_date = "2021/8/8"
+- maturity = "development"
+- query_schema_validation = false
+- updated_date = "2021/8/8"
+# - min_stack_version = "7.12.0"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Identifies .lnk shortcut file downloaded from outside the local network. These shortcut files are commonly used in
+    phishing campaigns."
+
+# - false_positives: ["Microsoft Windows installers leveraging RunDLL32 for installation."]
+
+# - interval: "30m"
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+# - note: """## Triage and analysis
+#     AdFind.exe` is a legitimate domain query tool. Rule alerts should be investigated to identify if the user has a role that would explain using this tool and that it is being run from an expected directory and endpoint. Leverage the exception workflow in the Kibana Security App or Elasticsearch API to tune this rule to your environment."""
+
+# - references: ["https://www.iana.org/assignments/iana-ipv4-special-registry/iana-ipv4-special-registry.xhtml"]
+
+# - max_signals: 33
+
+- risk_score: 21
+
+- rule_id: "6b1fd8e8-cefe-444c-bc4d-feaa2c497347"
+
+- severity: "low"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Execution"]
+
+- type: "eql"
+
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1204",
+        name : "User Execution",
+        reference : "https://attack.mitre.org/techniques/T1204/"],
+      tactic: [
+        id : "TA0002",
+        name : "Execution",
+        reference : "https://attack.mitre.org/tactics/TA0002/"]],
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1566",
+        name : "Phishing",
+        reference : "https://attack.mitre.org/techniques/T1566/",
+        subtechnique: [
+          [id : "T1566.001",        
+          name : "Spearphishing Attachment",        
+          reference : "https://attack.mitre.org/techniques/T1566/001/"],
+          [id : "T1566.002",        
+          name : "Spearphishing Link",        
+          reference : "https://attack.mitre.org/techniques/T1566/002/"]
+        ]
+      ],
+      tactic: [
+        id : "TA0001",
+        name : "Initial Access",
+        reference : "https://attack.mitre.org/tactics/TA0001/"]
+    ]
+  ]
+
+name: "Downloaded Shortcut Files"
+index: .ds-winlogbeat-8.0.0-2022.02.19-000001
+
+type: any
+eql:
+  "query": "/* leaving in development pending `file.Ext.windows.zone_identifier` landing in ECS then endpoint */
+    sequence by process.entity_id with maxspan=2s
+                                              /* file.extension added to endpoint fields for 7.10 */
+      [file where event.type == \"creation\" and file.extension == \"lnk\"]
+                                              /* not sure yet how the update will capture ADS */
+      [file where event.type == \"creation\" and file.extension == \"lnk:Zone.Identifier\" and
+        /* non-ECS field - may disqualify conversion */
+        file.extention.windows.zone_identifier > 1]"
+
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

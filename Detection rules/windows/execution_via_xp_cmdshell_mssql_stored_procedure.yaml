@@ -1,0 +1,66 @@
+ANPdata:
+- creation_date = "2021/8/8"
+- maturity = "production"
+# - query_schema_validation = false
+- updated_date = "2021/8/8"
+# - min_stack_version = "7.12.0"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Identifies execution via MSSQL xp_cmdshell stored procedure. Malicious users may attempt to elevate their privileges by
+    using xp_cmdshell, which is disabled by default, thus, it's important to review the context of it's use."
+
+# - false_positives: ["The HTML Help executable program (hh.exe) runs whenever a user clicks a compiled help (.chm) file or menu item that
+#     opens the help file inside the Help Viewer. This is not always malicious, but adversaries may abuse this technology
+#     to conceal malicious code."]
+
+# - interval: "60m"
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+# - note: """## Triage and analysis
+#     The SxS DotLocal folder is a legitimate feature that can be abused to hijack standard modules loading order by forcing an executable on the same application.exe.local folder to load a malicious DLL module from the same directory."""
+
+# - references: ["https://www.fireeye.com/blog/threat-research/2017/08/monitoring-windows-console-activity-part-one.html"]
+
+# - max_signals: 33
+
+- risk_score: 73
+
+- rule_id: "4ed493fc-d637-4a36-80ff-ac84937e5461"
+
+- severity: "high"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Execution"]
+
+- type: "eql"
+
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1059",
+        name : "Command and Scripting Interpreter",
+        reference : "https://attack.mitre.org/techniques/T1059/"],
+      tactic: [
+        id : "TA0002",
+        name : "Execution",
+        reference : "https://attack.mitre.org/tactics/TA0002/"]]
+  ]
+
+name: "Execution via MSSQL xp_cmdshell Stored Procedure"
+index: anp-log-agentbase-winclient
+
+type: any
+eql:
+  "query": "process where event.type in (\"start\", \"process_started\") and
+    process.name : \"cmd.exe\" and process.parent.name : \"sqlservr.exe\""
+
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

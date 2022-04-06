@@ -1,0 +1,54 @@
+ANPdata:
+- creation_date = "2021/08/08"
+- maturity = "production"
+- updated_date = "2021/08/08"
+
+ANPrule:
+- author = ["Elastic"]
+
+- description = """Adversaries may create or modify the Sublime application plugins or scripts to execute a malicious payload each time the
+    Sublime application is started."""
+
+- language = "eql"
+
+- license = "Elastic License v2"
+
+- references = ["https://posts.specterops.io/persistent-jxa-66e1c3cd1cf5"]
+
+- risk_score = 21
+
+- rule_id = "88817a33-60d3-411f-ba79-7c905d865b2a"
+
+- severity = "low"
+
+- tags = ["Elastic", "Host", "macOS", "Threat Detection", "Persistence"]
+
+- type = "eql"
+
+name: "Sublime Plugin or Application Script Modification"
+
+index: ["auditbeat-*", "logs-endpoint.events.*"]
+
+type: any
+
+eql: 
+  "query": "file where event.type in (\"change\", \"creation\") and file.extension : \"py\" and\n  file.path :     (      \"/Users/*/Library/Application Support/Sublime Text*/Packages/*.py\",       \"/Applications/Sublime Text.app/Contents/MacOS/sublime.py\"    ) and\n  not process.executable :     (      \"/Applications/Sublime Text*.app/Contents/MacOS/Sublime Text*\",       \"/usr/local/Cellar/git/*/bin/git\",       \"/usr/libexec/xpcproxy\",       \"/System/Library/PrivateFrameworks/DesktopServicesPriv.framework/Versions/A/Resources/DesktopServicesHelper\",       \"/Applications/Sublime Text.app/Contents/MacOS/plugin_host\"    )"
+
+threat:
+  - 01:
+    - threat_rule: 
+      - framework = "MITRE ATT&CK"
+    - technique:
+      - id = "T1554"
+      - name = "Compromise Client Software Binary"
+      - reference = "https://attack.mitre.org/techniques/T1554/"
+    - tactic:
+      - id = "TA0003"
+      - name = "Persistence"
+      - reference = "https://attack.mitre.org/tactics/TA0003/"
+
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

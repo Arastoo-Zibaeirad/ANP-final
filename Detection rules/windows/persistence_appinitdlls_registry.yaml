@@ -1,0 +1,75 @@
+ANPdata:
+- creation_date = "2021/8/10"
+- maturity = "production"
+# - query_schema_validation = false
+- updated_date = "2021/8/10"
+# - min_stack_version = "7.12.0"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Attackers may maintain persistence by creating registry keys using AppInit DLLs. AppInit DLLs are loaded by every
+    process using the common library, user32.dll."
+
+# - false_positives:  ["""PowerShell remoting is a dual-use protocol that can be used for benign or malicious activity. It's important to
+    # baseline your environment to determine the amount of noise to expect from this tool."""]
+
+# - interval: "60m"
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+# - note: """## Triage and analysis Decode the base64 encoded tasks actions registry value to investigate the task configured action."""
+
+# - references: ["https://www.mdsec.co.uk/2017/06/rdpinception/"]
+
+# - max_signals: 33
+
+- risk_score: 47
+
+- rule_id: "d0e159cf-73e9-40d1-a9ed-077e3158a855"
+
+- severity: "medium"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Persistence"]
+
+- type: "eql"
+
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1546",
+        name : "Event Triggered Execution",
+        reference : "https://attack.mitre.org/techniques/T1546/",
+        subtechnique: [
+          [id : "T1546.010",        
+          name : "AppInit DLLs",        
+          reference : "https://attack.mitre.org/techniques/T1546/010/"]
+        ]
+      ],
+      tactic: [
+        id : "TA0003",
+        name : "Persistence",
+        reference : "https://attack.mitre.org/tactics/TA0003/"]
+    ]
+  ]
+
+name: "Registry Persistence via AppInit DLL"
+index: anp-log-agentbase-winclient
+type: any
+eql:
+  "query": "registry where
+   registry.path : (\"HKLM\\\\SOFTWARE\\\\Microsoft\\\\Windows NT\\\\CurrentVersion\\\\Windows\\\\AppInit_Dlls\", 
+                    \"HKLM\\\\SOFTWARE\\\\Wow6432Node\\\\Microsoft\\\\Windows NT\\\\CurrentVersion\\\\Windows\\\\AppInit_Dlls\") and
+   not process.executable : (\"C:\\\\Windows\\\\System32\\\\msiexec.exe\", 
+                             \"C:\\\\Windows\\\\SysWOW64\\\\msiexec.exe\", 
+                             \"C:\\\\Program Files\\\\Commvault\\\\ContentStore*\\\\Base\\\\cvd.exe\",
+                             \"C:\\\\Program Files (x86)\\\\Commvault\\\\ContentStore*\\\\Base\\\\cvd.exe\")"
+
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

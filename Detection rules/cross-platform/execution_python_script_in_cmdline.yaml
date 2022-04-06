@@ -1,0 +1,60 @@
+ANPdata:
+- creation_date = "2021/07/27"
+- maturity = "production"
+- updated_date = "2021/07/27"
+
+ANPrule:
+- author = ["Elastic"]
+
+- description = """
+    Identifies when a Python script is executed using command line input and imports the sys module. Attackers often use
+    this method to execute malicious scripts and avoiding writing it to disk."""
+
+- false_positives = ["Legitimate Python scripting activity."]
+
+- language = "kuery"
+
+- license = "Elastic License v2"
+
+- risk_score = 47
+
+- rule_id = "ee9f08dc-cf80-4124-94ae-08c405f059ae"
+
+- severity = "medium"
+
+- tags = ["Elastic", "Host", "Linux", "macOS", "Windows", "Threat Detection", "Execution"]
+
+- type = "eql"
+
+name: "Python Script Execution via Command Line"
+
+index: ["auditbeat-*", "logs-endpoint.events.*"]
+
+type: any
+
+eql:
+  "query": "process where event.type in (\"start\", \"process_started\") and\n process.name : \"python*\" and process.args : \"-c\" and process.args : \"*import*sys*\""
+
+threat:
+  - 01:
+    - threat_rule: 
+      - framework = "MITRE ATT&CK"
+    - technique: 
+      - id = "T1059"
+      - name = "Command and Scripting Interpreter"
+      - reference = "https://attack.mitre.org/techniques/T1059/"
+      - subtechnique:
+        - id = "T1059.006"
+        - name = "Python"
+        - reference = "https://attack.mitre.org/techniques/T1059/006/"
+
+    - tactic:
+      - id = "TA0002"
+      - name = "Execution"
+      - reference = "https://attack.mitre.org/tactics/TA0002/"
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

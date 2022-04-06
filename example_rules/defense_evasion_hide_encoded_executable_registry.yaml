@@ -1,0 +1,52 @@
+ANPdata:
+- creation_date = "2021/8/3"
+- maturity = "production"
+- updated_date = "2021/8/3"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Identifies registry write modifications to hide an encoded portable executable. This could be indicative of adversary defense evasion by avoiding the storing of malicious content directly on disk."
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+- risk_score: 47
+
+- rule_id: "93c1ce76-494c-4f01-8167-35edfb52f7b1"
+
+- severity: "medium"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Defense Evasion"]
+
+- type: "eql"
+
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1140",
+        name : "Deobfuscate/Decode Files or Information",
+        reference : "https://attack.mitre.org/techniques/T1140/"
+      ],
+
+      tactic: [
+        id : "TA0005",
+        name : "Defense Evasion",
+        reference : "https://attack.mitre.org/tactics/TA0005/"]]]
+
+
+name: "Encoded Executable Stored in the Registry"
+index: .ds-winlogbeat-8.0.0-2022.02.19-000001
+type: any
+eql:
+  "query": "registry where
+    /* update here with encoding combinations */
+    registry.data.strings : \"TVqQAAMAAAAEAAAA*\""
+
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

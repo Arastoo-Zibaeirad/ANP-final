@@ -1,0 +1,59 @@
+ANPdata:
+- creation_date = "2021/08/08"
+- maturity = "production"
+- updated_date = "2021/08/08"
+
+ANPrule:
+- author = ["Elastic"]
+
+- description = """Identifies a potential Gatekeeper bypass. In macOS, when applications or programs are downloaded from the internet,
+    there is a quarantine flag set on the file. This attribute is read by Apple's Gatekeeper defense program at execution
+    time. An adversary may disable this attribute to evade defenses."""
+
+- language = "eql"
+
+- license = "Elastic License v2"
+
+- references = ["https://www.trendmicro.com/en_us/research/20/k/new-macos-backdoor-connected-to-oceanlotus-surfaces.html",    "https://ss64.com/osx/xattr.html"]
+
+- risk_score = 47
+
+- rule_id =  "f0b48bbc-549e-4bcf-8ee0-a7a72586c6a7"
+
+- severity = "medium"
+
+- tags =  ["Elastic", "Host", "macOS", "Threat Detection", "Defense Evasion"]
+
+- type = "eql"
+
+name: "Attempt to Remove File Quarantine Attribute"
+
+index: ["auditbeat-*", "logs-endpoint.events.*"]
+
+type: any
+
+eql:
+  "query": "process where event.type in (\"start\", \"process_started\") and\n  process.args : \"xattr\" and\n  (    (process.args : \"com.apple.quarantine\" and process.args : (\"-d\", \"-w\")) or\n    (process.args : \"-c\" and process.command_line :      (        \"/bin/bash -c xattr -c *\",        \"/bin/zsh -c xattr -c *\",        \"/bin/sh -c xattr -c *\"      )    )  )"
+
+threat:
+  - 01:
+    - threat_rule: 
+      - framework = "MITRE ATT&CK"
+    - technique:
+      - id = "T1562"
+      - name = "Impair Defenses"
+      - reference = "https://attack.mitre.org/techniques/T1562/"
+      - subtechnique:
+        - id = "T1562.001"
+        - name = "Disable or Modify Tools"
+        - reference = "https://attack.mitre.org/techniques/T1562/001/"
+    - tactic:
+      - id = "TA0005"
+      - name =  "Defense Evasion"
+      - reference = "https://attack.mitre.org/tactics/TA0005/"
+
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

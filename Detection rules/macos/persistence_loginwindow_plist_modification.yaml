@@ -1,0 +1,60 @@
+ANPdata:
+- creation_date = "2021/08/08"
+- maturity = "production"
+- updated_date = "2021/08/08"
+
+ANPrule:
+- author = ["Elastic"]
+
+- description = """Identifies the creation or modification of the login window property list (plist). Adversaries may modify plist files to
+    run a program during system boot or user login for persistence."""
+
+- language = "kuery"
+
+- license = "Elastic License v2"
+
+- note = """## Triage and analysis. Starting in Mac OS X 10.7 (Lion), users can specify certain applications to be re-opened when a user reboots their machine. This can be abused to establish or maintain persistence on a compromised system."""
+
+- references = ["https://github.com/D00MFist/PersistentJXA/blob/master/LoginScript.js"]
+
+- risk_score = 47
+
+- rule_id = "ac412404-57a5-476f-858f-4e8fbb4f48d8"
+
+- severity = "medium"
+
+- tags = ["Elastic", "Host", "macOS", "Threat Detection", "Persistence"]
+
+- type = "query"
+
+name: "Potential Persistence via Login Hook"
+
+index: ["auditbeat-*", "logs-endpoint.events.*"]
+
+type: any
+
+kql: 
+  "query": {"query_string": {"query": "event.category:\"file\" and not event.type:\"deletion\" and\n file.name:\"com.apple.loginwindow.plist\" and\n process.name:(* and not (systemmigrationd or DesktopServicesHelper or diskmanagementd or rsync or launchd or cfprefsd or xpcproxy or ManagedClient or MCXCompositor))"}}
+
+threat:
+  - 01:
+    - threat_rule: 
+      - framework = "MITRE ATT&CK"
+    - technique:
+      - id = "T1547"
+      - name = "Boot or Logon Autostart Execution"
+      - reference = "https://attack.mitre.org/techniques/T1547/"
+      - subtechnique:
+        - id = "T1547.011"
+        - name = "Plist Modification"
+        - reference = "https://attack.mitre.org/techniques/T1547/011/"
+    - tactic:
+      - id = "TA0003"
+      - name = "Persistence"
+      - reference = "https://attack.mitre.org/tactics/TA0003/"
+
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

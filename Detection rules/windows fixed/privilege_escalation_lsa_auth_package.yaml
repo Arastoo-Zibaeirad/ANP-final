@@ -1,0 +1,88 @@
+ANPdata:
+- creation_date = "2021/8/11"
+- maturity = "production"
+# - query_schema_validation = false
+- updated_date = "2021/8/11"
+# - min_stack_version = "7.12.0"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Adversaries can use the autostart mechanism provided by the Local Security Authority (LSA) authentication packages for
+    privilege escalation or persistence by placing a reference to a binary in the Windows registry. The binary will then be
+    executed by SYSTEM when the authentication packages are loaded."
+
+# - false_positives:  ["""Legitimate local user creations may be done by a system or network administrator. Verify whether this is known
+    # behavior in your environment. Local user creations from unfamiliar users or hosts should be investigated. If known
+    # behavior is causing false positives, it can be exempted from the rule."""]
+
+# - interval: "60m"
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+# - note: """## Triage and analysis Decode the base64 encoded Tasks Actions registry value to investigate the task's configured action."""
+
+# - references: ["https://www.greyhathacker.net/?p=796", "https://docs.microsoft.com/en-us/windows/security/identity-protection/user-account-control/user-account-control-group-policy-and-registry-key-settings", "https://docs.microsoft.com/en-us/windows/security/identity-protection/user-account-control/user-account-control-overview"]
+
+# - max_signals: 33
+
+- risk_score: 47
+
+- rule_id: "e9abe69b-1deb-4e19-ac4a-5d5ac00f72eb"
+
+- severity: "medium"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Privilege Escalation"]
+
+- type: "eql"
+
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1547",
+        name : "Boot or Logon Autostart Execution",
+        reference : "https://attack.mitre.org/techniques/T1547/",
+        subtechnique: [
+          [id : "T1547.002",        
+          name : "Authentication Package",        
+          reference : "https://attack.mitre.org/techniques/T1547/002/"]
+        ]
+      ],
+      tactic: [
+        id : "TA0004",
+        name : "Privilege Escalation",
+        reference : "https://attack.mitre.org/tactics/TA0004/"]],
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1547",
+        name : "Boot or Logon Autostart Execution",
+        reference : "https://attack.mitre.org/techniques/T1547/",
+        subtechnique: [
+          [id : "T1547.002",        
+          name : "Authentication Package",        
+          reference : "https://attack.mitre.org/techniques/T1547/002/"]
+        ]
+      ],
+      tactic: [
+        id : "TA0003",
+        name : "Persistence",
+        reference : "https://attack.mitre.org/tactics/TA0003/"]
+    ]
+  ]
+name: "Potential LSA Authentication Package Abuse"
+index: .ds-winlogbeat-8.0.0-2022.02.19-000001
+type: any
+eql:
+  "query": "registry where event.type== \"change\" and
+    registry.path : \"HKLM\\\\SYSTEM\\\\*ControlSet*\\\\Control\\\\Lsa\\\\Authentication Packages\" and
+    /* exclude SYSTEM SID - look for changes by non-SYSTEM user */
+    not user.id : \"S-1-5-18\""
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

@@ -1,0 +1,58 @@
+ANPdata:
+- creation_date = "2021/08/08"
+- maturity = "production"
+- updated_date = "2021/08/08"
+
+ANPrule:
+- author = ["Elastic"]
+
+- description = """Identifies attempts to create a local account that will be hidden from the macOS logon window. This may indicate an
+    attempt to evade user attention while maintaining persistence using a separate local account."""
+
+- language = "kuery"
+
+- license = "Elastic License v2"
+
+- references = ["https://support.apple.com/en-us/HT203998"]
+
+- risk_score = 47
+
+- rule_id = "41b638a1-8ab6-4f8e-86d9-466317ef2db5"
+
+- severity = "medium"
+
+- tags = ["Elastic", "Host", "macOS", "Threat Detection", "Persistence"]
+
+- type = "query"
+
+name: "Potential Hidden Local User Account Creation"
+
+index: ["auditbeat-*", "logs-endpoint.events.*"]
+
+type: any
+
+kql: 
+  "query": {"query_string": {"query": "event.category:process and event.type:(start or process_started) and\n process.name:dscl and process.args:(IsHidden and create and (true or 1 or yes))"}}
+
+threat:
+  - 01:
+    - threat_rule: 
+      - framework = "MITRE ATT&CK"
+    - technique:
+      - id = "T1078"
+      - name = "Valid Accounts"
+      - reference = "https://attack.mitre.org/techniques/T1078/"
+      - subtechnique: 
+        - id = "T1078.003"
+        - name = "Local Accounts"
+        - reference = "https://attack.mitre.org/techniques/T1078/003/"
+    - tactic:
+      - id = "TA0003"
+      - name = "Persistence"
+      - reference = "https://attack.mitre.org/tactics/TA0003/"
+
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

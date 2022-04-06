@@ -1,0 +1,72 @@
+ANPdata:
+- creation_date = "2021/8/10"
+- maturity = "production"
+# - query_schema_validation = false
+- updated_date = "2021/8/10"
+# - min_stack_version = "7.12.0"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Identifies unexpected processes making network connections over port 445. Windows File Sharing is typically implemented
+    over Server Message Block (SMB), which communicates between hosts using port 445. When legitimate, these network
+    connections are established by the kernel. Processes making 445/tcp connections may be port scanners, exploits, or
+    suspicious user-level processes moving laterally."
+
+# - false_positives:  ["""Werfault.exe will legitimately spawn when dns.exe crashes, but the DNS service is very stable and so this is a low
+    # occurring event. Denial of Service (DoS) attempts by intentionally crashing the service will also cause werfault.exe
+    # to spawn."""]
+
+# - interval: "60m"
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+# - note: """## Triage and analysis Investigating Unusual File Write Detection alerts from this rule indicate potential unusual/abnormal file writes from the DNS Server service process (`dns.exe`) after exploitation from CVE-2020-1350 (SigRed) has occurred. Here are some possible avenues of investigation - Post-exploitation, adversaries may write additional files or payloads to the system as additional discovery/exploitation/persistence mechanisms.- Any suspicious or abnormal files written from `dns.exe` should be reviewed and investigated with care.""""""
+
+# - references: ["https://www.welivesecurity.com/2019/05/29/turla-powershell-usage/", "https://docs.microsoft.com/en-us/windows/security/threat-protection/security-policy-settings/network-access-restrict-anonymous-access-to-named-pipes-and-shares"]
+
+# - max_signals: 33
+
+- risk_score: 47
+
+- rule_id: "c82c7d8f-fb9e-4874-a4bd-fd9e3f9becf1"
+
+- severity: "medium"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Lateral Movement"]
+
+- type: "eql"
+
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1021",
+        name : "Remote Services",
+        reference : "https://attack.mitre.org/techniques/T1021/"
+      ],
+      tactic: [
+        id : "TA0008",
+        name : "Lateral Movement",
+        reference : "https://attack.mitre.org/tactics/TA0008/"]
+    ]
+  ]
+
+
+name: "Direct Outbound SMB Connection"
+index: .ds-winlogbeat-8.0.0-2022.02.19-000001
+
+type: any
+eql:
+  "query": "sequence by process.entity_id
+    [process where event.type == \"start\" and process.pid != 4]
+    [network where destination.port == 445 and process.pid != 4 and
+      not cidrmatch(destination.ip, \"127.0.0.1\", \"::1\")]"
+
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

@@ -1,0 +1,49 @@
+ANPdata:
+- creation_date = "2021/8/7"
+- maturity = "production"
+- updated_date = "2021/8/7"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Identifies a suspicious child process of the Windows virtual system process, which could indicate code injection."
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+- risk_score: 73
+
+- rule_id: "de9bd7e0-49e9-4e92-a64d-53ade2e66af1"
+
+- severity: "high"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Defense Evasion"]
+
+- type: "eql"
+
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1055",
+        name : "Process Injection",
+        reference : "https://attack.mitre.org/techniques/T1055/"],
+      tactic: [
+        id : "TA0005",
+        name : "Defense Evasion",
+        reference : "https://attack.mitre.org/tactics/TA0005/"]]]
+
+name: "Unusual Child Process from a System Virtual Process"
+index: .ds-winlogbeat-8.0.0-2022.02.19-000001
+type: any
+eql:
+  "query": "process where event.type in (\"start\", \"process_started\") and
+    process.parent.pid == 4 and
+    not process.executable : (\"Registry\", \"MemCompression\", \"?:\\\\Windows\\\\System32\\\\smss.exe\")"
+
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

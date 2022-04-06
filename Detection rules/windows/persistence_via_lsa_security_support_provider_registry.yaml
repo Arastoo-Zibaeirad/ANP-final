@@ -1,0 +1,72 @@
+ANPdata:
+- creation_date = "2021/8/11"
+- maturity = "production"
+# - query_schema_validation = false
+- updated_date = "2021/8/11"
+# - min_stack_version = "7.12.0"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Identifies registry modifications related to the Windows Security Support Provider (SSP) configuration. Adversaries may
+    abuse this to establish persistence in an environment."
+
+# - false_positives:  ["""Legitimate local user creations may be done by a system or network administrator. Verify whether this is known
+    # behavior in your environment. Local user creations from unfamiliar users or hosts should be investigated. If known
+    # behavior is causing false positives, it can be exempted from the rule."""]
+
+# - interval: "60m"
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+# - note: """## Triage and analysis Decode the base64 encoded Tasks Actions registry value to investigate the task's configured action."""
+
+# - references: ["https://github.com/outflanknl/SharpHide", "https://github.com/ewhitehats/InvisiblePersistence/blob/master/InvisibleRegValues_Whitepaper.pdf"]
+
+# - max_signals: 33
+
+- risk_score: 47
+
+- rule_id: "e86da94d-e54b-4fb5-b96c-cecff87e8787"
+
+- severity: "medium"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Persistence"]
+
+- type: "eql"
+
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1547",
+        name : "Boot or Logon Autostart Execution",
+        reference : "https://attack.mitre.org/techniques/T1547/",
+        subtechnique: [
+          [id : "T1547.005",        
+          name : "Security Support Provider",        
+          reference : "https://attack.mitre.org/techniques/T1547/005/"]
+        ]
+      ],
+      tactic: [
+        id : "TA0003",
+        name : "Persistence",
+        reference : "https://attack.mitre.org/tactics/TA0003/"]
+    ]
+  ]
+name: "Installation of Security Support Provider"
+index: anp-log-agentbase-winclient
+type: any
+eql:
+  "query": "registry where
+    registry.path : (\"HKLM\\\\SYSTEM\\\\CurrentControlSet\\\\Control\\\\Lsa\\\\Security Packages*\", 
+                      \"HKLM\\\\SYSTEM\\\\CurrentControlSet\\\\Control\\\\Lsa\\\\OSConfig\\\\Security Packages*\") and
+    not process.executable : (\"C:\\\\Windows\\\\System32\\\\msiexec.exe\", \"C:\\\\Windows\\\\SysWOW64\\\\msiexec.exe\")"
+
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

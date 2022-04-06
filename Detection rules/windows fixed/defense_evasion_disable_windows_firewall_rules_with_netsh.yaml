@@ -1,0 +1,58 @@
+ANPdata:
+- creation_date = "2021/8/3"
+- maturity = "production"
+- updated_date = "2021/8/3"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Identifies use of the netsh.exe to disable or weaken the local firewall. Attackers will use this command line tool to disable the firewall during troubleshooting or to enable network mobility."
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+- risk_score: 47
+
+- rule_id: "4b438734-3793-4fda-bd42-ceeada0be8f9"
+
+- severity: "medium"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Defense Evasion"]
+
+- type: "eql"
+
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1562",
+        name : "Impair Defenses",
+        reference : "https://attack.mitre.org/techniques/T1562/",
+        subtechnique: [
+          [id : "T1562.001",        
+          name : "Disable or Modify Tools",        
+          reference : "https://attack.mitre.org/techniques/T1562/001/"],
+
+        ]
+      ],
+      tactic: [
+        id : "TA0005",
+        name : "Defense Evasion",
+        reference : "https://attack.mitre.org/tactics/TA0005/"]
+    ]
+  ]
+name: "Disable Windows Firewall Rules via Netsh"
+index: .ds-winlogbeat-8.0.0-2022.02.19-000001
+type: any
+eql:
+  "query": "process where event.type in (\"start\", \"process_started\") and
+    process.name : \"netsh.exe\" and
+    (process.args : \"disable\" and process.args : \"firewall\" and process.args : \"set\") or
+    (process.args : \"advfirewall\" and process.args : \"off\" and process.args : \"state\")"
+
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

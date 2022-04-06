@@ -1,0 +1,54 @@
+ANPdata:
+- creation_date = "2021/08/08"
+- maturity = "production"
+- updated_date = "2021/08/08"
+
+ANPrule:
+- author = ["Elastic"]
+
+- description = """Identifies the creation or modification of the default configuration for periodic tasks. Adversaries may abuse periodic
+    tasks to execute malicious code or maintain persistence."""
+
+- language = "kuery"
+
+- license = "Elastic License v2"
+
+- references = [ "https://opensource.apple.com/source/crontabs/crontabs-13/private/etc/defaults/periodic.conf.auto.html",    "https://www.oreilly.com/library/view/mac-os-x/0596003706/re328.html",    "https://github.com/D00MFist/PersistentJXA/blob/master/PeriodicPersist.js"]
+
+- risk_score = 21
+
+- rule_id = "48ec9452-e1fd-4513-a376-10a1a26d2c83"
+
+- severity = "low"
+
+- tags = ["Elastic", "Host", "macOS", "Threat Detection", "Persistence"]
+
+- type = "query"
+
+name: "Potential Persistence via Periodic Tasks"
+
+index: ["auditbeat-*", "logs-endpoint.events.*"]
+
+type: any
+
+kql: 
+  "query": {"query_string": {"query": "event.category: \"file\" and not event.type: \"deletion\" and\n file.path:\"(/private/etc/periodic/* or /private/etc/defaults/periodic.conf or /private/etc/periodic.conf)\""}}
+
+threat:
+  - 01:
+    - threat_rule: 
+      - framework = "MITRE ATT&CK"
+    - technique:
+      - id = "T1053"
+      - name = "Scheduled Task/Job"
+      - reference = "https://attack.mitre.org/techniques/T1053/"
+    - tactic:
+      - id = "TA0003"
+      - name = "Persistence"
+      - reference = "https://attack.mitre.org/tactics/TA0003/"
+
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

@@ -1,0 +1,57 @@
+ANPdata:
+- creation_date = "2021/07/28"
+- maturity = "production"
+- updated_date = "2021/07/28"
+
+ANPrule:
+- author = ["Elastic"]
+
+- description = """
+    The Secure Shell (SSH) authorized_keys file specifies which users are allowed to log into a server using public key
+    authentication. Adversaries may modify it to maintain persistence on a victim host by adding their own public key(s)."""
+
+- language = "kuery"
+
+- license = "Elastic License v2"
+
+- risk_score = 47
+
+- rule_id = "2215b8bd-1759-4ffa-8ab8-55c8e6b32e7f"
+
+- severity = "medium"
+
+- tags = ["Elastic", "Host", "Linux", "macOS", "Threat Detection", "Persistence"]
+
+- type = "query"
+
+name: "SSH Authorized Keys File Modification"
+
+index: ["auditbeat-*", "logs-endpoint.events.*"]
+
+type: any
+
+kql:
+  "query": {"query_string": {"query": "event.category:file and event.type:(change or creation) and\n  file.name:(\"authorized_keys\" or \"authorized_keys2\") and \n not process.executable:             (/Library/Developer/CommandLineTools/usr/bin/git or\n              /usr/local/Cellar/maven/*/libexec/bin/mvn or \n              /Library/Java/JavaVirtualMachines/jdk*.jdk/Contents/Home/bin/java or\n              /usr/bin/vim or \n              /usr/local/Cellar/coreutils/*/bin/gcat or\n              /usr/bin/bsdtar or\n              /usr/bin/nautilus or\n               /usr/bin/scp or\n              /usr/bin/touch or\n              /var/lib/docker/*)"}}
+
+threat:
+  - 01:
+    - threat_rule: 
+      - framework = "MITRE ATT&CK"
+    - technique: 
+      - id = "T1098"
+      - name = "Account Manipulation"
+      - reference = "https://attack.mitre.org/techniques/T1098/"
+      - subtechnique: 
+        - id = "T1098.004"
+        - name = "SSH Authorized Keys"
+        - reference = "https://attack.mitre.org/techniques/T1098/004/"
+    - tactic:
+      - id = "TA0003"
+      - name = "Persistence"
+      - reference = "https://attack.mitre.org/tactics/TA0003/"
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

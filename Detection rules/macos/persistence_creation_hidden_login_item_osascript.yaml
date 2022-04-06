@@ -1,0 +1,72 @@
+ANPdata:
+- creation_date = "2021/08/08"
+- maturity = "production"
+- updated_date = "2021/08/08"
+
+ANPrule:
+- author = ["Elastic"]
+
+- description = """Identifies the execution of osascript to create a hidden login item. This may indicate an attempt to persist a malicious
+    program while concealing its presence."""
+
+- language = "eql"
+
+- license = "Elastic License v2"
+
+- references = ["https://developer.apple.com/library/archive/documentation/MacOSX/Conceptual/BPSystemStartup/Chapters/CreatingLaunchdJobs.html"]
+
+- risk_score = 47
+
+- rule_id = "f24bcae1-8980-4b30-b5dd-f851b055c9e7"
+
+- severity = "medium"
+
+- tags = ["Elastic", "Host", "macOS", "Threat Detection", "Persistence", "Execution"]
+
+- type = "eql"
+
+name: "Creation of Hidden Login Item via Apple Script"
+
+index: ["auditbeat-*", "logs-endpoint.events.*"]
+
+type: any
+
+eql: 
+  "query": "process where event.type in (\"start\", \"process_started\") and process.name : \"osascript\" and\n process.command_line : \"osascript*login item*hidden:true*\""
+
+threat:
+  - 01:
+    - threat_rule: 
+      - framework = "MITRE ATT&CK"
+    - technique:
+      - id = "T1547"
+      - name = "Boot or Logon Autostart Execution"
+      - reference = "https://attack.mitre.org/techniques/T1547/"
+      - subtechnique: 
+        - id = "T1547.011"
+        - name = "Plist Modification"
+        - reference = "https://attack.mitre.org/techniques/T1547/011/"
+    - tactic:
+      - id = "TA0003"
+      - name = "Persistence"
+      - reference = "https://attack.mitre.org/tactics/TA0003/"
+  - 02:
+    - threat_rule: 
+      - framework = "MITRE ATT&CK"
+    - technique:
+      - id = "T1059"
+      - name = "Command and Scripting Interpreter"
+      - reference = "https://attack.mitre.org/techniques/T1059/"
+      - subtechnique: 
+        - id = "T1059.002"
+        - name = "AppleScript"
+        - reference = "https://attack.mitre.org/techniques/T1059/002/"
+    - tactic:
+      - id = "TA0002"
+      - name = "Execution"
+      - reference = "https://attack.mitre.org/tactics/TA0002/"
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

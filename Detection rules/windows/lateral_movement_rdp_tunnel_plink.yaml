@@ -1,0 +1,68 @@
+ANPdata:
+- creation_date = "2021/8/10"
+- maturity = "production"
+# - query_schema_validation = false
+- updated_date = "2021/8/10"
+# - min_stack_version = "7.12.0"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Identifies potential use of an SSH utility to establish RDP over a reverse SSH Tunnel. This could be indicative of
+    adversary lateral movement to interactively access restricted networks."
+
+# - false_positives:  ["""PowerShell remoting is a dual-use protocol that can be used for benign or malicious activity. It's important to
+    # baseline your environment to determine the amount of noise to expect from this tool."""]
+
+# - interval: "60m"
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+# - note: """## Triage and analysis Investigating Large DNS ResponsesDetection alerts from this rule indicate an attempt was made to exploit CVE-2020-1350 (SigRed) through the use of large DNS responses on a Windows DNS server. Here are some possible avenues of investigation - Investigate any corresponding Intrusion Detection Signatures (IDS) alerts that can validate this detection alert.- Examine the `dns.question_type` network fieldset with a protocol analyzer, such as Zeek, Packetbeat, or Suricata, for `SIG` or `RRSIG` data.- Validate the patch level and OS of the targeted DNS server to validate the observed activity was not large-scale Internet vulnerability scanning.- Validate that the source of the network activity was not from an authorized vulnerability scan or compromise assessment."""
+
+- references: ["https://blog.netspi.com/how-to-access-rdp-over-a-reverse-ssh-tunnel/"]
+
+# - max_signals: 33
+
+- risk_score: 73
+
+- rule_id: "76fd43b7-3480-4dd9-8ad7-8bd36bfad92f"
+
+- severity: "high"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Lateral Movement"]
+
+- type: "eql"
+
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1021",
+        name : "Remote Services",
+        reference : "https://attack.mitre.org/techniques/T1021/"
+      ],
+      tactic: [
+        id : "TA0008",
+        name : "Lateral Movement",
+        reference : "https://attack.mitre.org/tactics/TA0008/"]
+    ]
+  ]
+  
+
+name: "Potential Remote Desktop Tunneling Detected"
+index: anp-log-agentbase-winclient
+type: any
+eql:
+  "query": "process where event.type in (\"start\", \"process_started\") and
+    /* RDP port and usual SSH tunneling related switches in command line */
+    process.args : \"*:3389\" and
+    process.args : (\"-L\", \"-P\", \"-R\", \"-pw\", \"-ssh\")"
+
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

@@ -1,0 +1,68 @@
+ANPdata:
+- creation_date = "2021/8/7"
+- maturity = "production"
+- updated_date = "2021/8/7"
+# - min_stack_version = "7.12.0"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Identifies use of the Windows file system utility (fsutil.exe ) to gather information about attached peripheral devices
+    and components connected to a computer system."
+
+# - false_positives: ["Enumeration of files and directories may not be inherently malicious and noise may come from scripts, automation
+#     tools, or normal command line usage. It's important to baseline your environment to determine the amount of expected
+#     noise and exclude any known FP's from the rule."]
+
+# - interval: "30m"
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+# - note: """## Triage and analysis
+#     AdFind.exe` is a legitimate domain query tool. Rule alerts should be investigated to identify if the user has a role that would explain using this tool and that it is being run from an expected directory and endpoint. Leverage the exception workflow in the Kibana Security App or Elasticsearch API to tune this rule to your environment."""
+
+# - references: ["http://www.joeware.net/freetools/tools/adfind/", "https://thedfirreport.com/2020/05/08/adfind-recon/", "https://www.fireeye.com/blog/threat-research/2020/05/tactics-techniques-procedures-associated-with-maze-ransomware-incidents.html", "https://www.cybereason.com/blog/dropping-anchor-from-a-trickbot-infection-to-the-discovery-of-the-anchor-malware", "https://www.fireeye.com/blog/threat-research/2019/04/pick-six-intercepting-a-fin6-intrusion.html", "https://usa.visa.com/dam/VCOM/global/support-legal/documents/fin6-cybercrime-group-expands-threat-To-ecommerce-merchants.pdf"]
+
+# - max_signals: 33
+
+- risk_score: 21
+
+- rule_id: "0c7ca5c2-728d-4ad9-b1c5-bbba83ecb1f4"
+
+- severity: "low"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Discovery"]
+
+- type: "eql"
+
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1120",
+        name : "Peripheral Device Discovery",
+        reference : "https://attack.mitre.org/techniques/T1120/"],
+       
+      
+      tactic: [
+        id : "TA0007",
+        name : "Discovery",
+        reference : "https://attack.mitre.org/tactics/TA0007/"]
+    ]
+  ]
+
+name: "Peripheral Device Discovery"
+index: .ds-winlogbeat-8.0.0-2022.02.19-000001
+
+type: any
+eql:
+  "query": "process where event.type in (\"start\", \"process_started\") and
+    (process.name : \"fsutil.exe\" or process.pe.original_file_name == \"fsutil.exe\") and 
+    process.args : \"fsinfo\" and process.args : \"drives\""
+
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

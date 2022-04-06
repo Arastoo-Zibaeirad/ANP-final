@@ -1,0 +1,48 @@
+ANPdata:
+- creation_date = "2021/8/2"
+- maturity = "production"
+- updated_date = "2021/8/2"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Identifies attempts to clear Windows event log stores. This is often done by attackers in an attempt to evade detection or destroy forensic evidence on a system."
+
+- language: "kuery"
+
+- license: "Elastic License v2"
+
+- risk_score: 21
+
+- rule_id: "45ac4800-840f-414c-b221-53dd36a5aaf7"
+
+- severity: "low"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Defense Evasion"]
+
+- type: "query"
+
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1070",
+        name : "Indicator Removal on Host",
+        reference : "https://attack.mitre.org/techniques/T1070/"],
+
+      tactic: [
+        id : "TA0001",
+        name : "Initial Access",
+        reference : "https://attack.mitre.org/tactics/TA0001/"]
+    ]]
+
+name: Windows Event Logs Cleared
+index: .ds-winlogbeat-8.0.0-2022.02.19-000001
+type: any
+kql:
+  "query": {"query_string": {"query": "event.action:(\"audit-log-cleared\" or \"Log clear\")" }  }
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

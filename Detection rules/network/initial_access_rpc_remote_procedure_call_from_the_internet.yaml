@@ -1,0 +1,56 @@
+ANPdata:
+- creation_date = "2021/07/31"
+- maturity = "production"
+- updated_date = "2021/07/31"
+
+ANPrule:
+- author = ["Elastic"]
+
+- description = """This rule detects network events that may indicate the use of RPC traffic from the Internet. RPC is commonly used by
+    system administrators to remotely control a system for maintenance or to use shared resources. It should almost never be
+    directly exposed to the Internet, as it is frequently targeted and exploited by threat actors as an initial access or
+    backdoor vector."""
+
+- language = "kuery"
+
+- license = "Elastic License v2"
+
+- references = ["https://www.iana.org/assignments/iana-ipv4-special-registry/iana-ipv4-special-registry.xhtml"]
+
+- risk_score = 73
+
+- rule_id =  "143cb236-0956-4f42-a706-814bcaa0cf5a"
+
+- severity = "high"
+
+- tags = ["Elastic", "Host", "Network", "Threat Detection", "Initial Access", "Host"]
+
+- type = "query"
+
+name: "RPC (Remote Procedure Call) from the Internet"
+
+index: ["auditbeat-*", "filebeat-*", "packetbeat-*", "logs-endpoint.events.*"]
+
+type: any
+
+kql:
+  "query": {"query_string": {"query": "event.category:(network or network_traffic) and network.transport:tcp and (destination.port:135 or event.dataset:zeek.dce_rpc) and\n  not source.ip:(    \"10.0.0.0/8\" or\n    \"127.0.0.0/8\" or\n    \"169.254.0.0/16\" or\n    \"172.16.0.0/12\" or\n    \"192.0.0.0/24\" or\n    \"192.0.0.0/29\" or\n    \"192.0.0.8/32\" or\n    \"192.0.0.9/32\" or\n    \"192.0.0.10/32\" or\n    \"192.0.0.170/32\" or\n    \"192.0.0.171/32\" or\n    \"192.0.2.0/24\" or\n    \"192.31.196.0/24\" or\n    \"192.52.193.0/24\" or\n    \"192.168.0.0/16\" or\n    \"192.88.99.0/24\" or\n    \"224.0.0.0/4\" or\n    \"100.64.0.0/10\" or\n    \"192.175.48.0/24\" or\n    \"198.18.0.0/15\" or\n    \"198.51.100.0/24\" or\n    \"203.0.113.0/24\" or\n    \"240.0.0.0/4\" or\n    \"::1\" or\n    \"FE80::/10\" or\n    \"FF00::/8\"  ) and\n  destination.ip:(    \"10.0.0.0/8\" or\n    \"172.16.0.0/12\" or\n    \"192.168.0.0/16\"  )"}}
+
+threat:
+  - 01:
+    - threat_rule: 
+      - framework = "MITRE ATT&CK"
+    - technique:
+      - id = "T1190"
+      - name = "Exploit Public-Facing Application"
+      - reference = "https://attack.mitre.org/techniques/T1190/"
+    - tactic:
+      - id = "TA0001"
+      - name = "Initial Access"
+      - reference = "https://attack.mitre.org/tactics/TA0001/"
+ 
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

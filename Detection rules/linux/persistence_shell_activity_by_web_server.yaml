@@ -1,0 +1,83 @@
+ANPdata:
+- creation_date = "2021/8/1"
+- maturity = "production"
+- updated_date = "2021/8/1"
+# - min_stack_version = "7.12.0"
+ANPrule:
+- author = ["Elastic"]
+
+- description = """Identifies suspicious commands executed via a web server, which may suggest a vulnerability and remote shell access."""
+
+- false_positives = ["Network monitoring or management products may have a web server component that runs shell commands as part of normal behavior."]
+
+- language = "kuery"
+
+- license = "Elastic License v2"
+
+- references = ["https://pentestlab.blog/tag/web-shell/"]
+
+- risk_score = 47
+
+# - max_signals = 33
+
+- rule_id = "231876e7-4d1f-4d63-a47c-47dd1acdc1cb"
+
+- severity = "medium"
+
+- tags = ["Elastic", "Host", "Linux", "Threat Detection", "Persistence"]
+
+- type = "query"
+name: "Potential Shell via Web Server"
+index: ["auditbeat-*", "logs-endpoint.events.*"]
+type: any
+kql:
+  "query": {"query_string": {"query": "event.category:process and event.type:(start or process_started) and process.name:(bash or dash) and user.name:(apache or nginx or www or \"www-data\")" }  }
+threat:
+  - 01:
+    - threat_rule: 
+      - framework = "MITRE ATT&CK"
+    - technique: 
+      - id = "T1505"
+      - name = "Server Software Component"
+      - reference = "https://attack.mitre.org/techniques/T1505/"
+      - subtechnique:
+        - id = "T1505.003"
+        - name = "Web Shell"
+        - reference = "https://attack.mitre.org/techniques/T1505/003/"
+    - tactic:
+      - id = "TA0003"
+      - name = "Persistence"
+      - reference = "https://attack.mitre.org/tactics/TA0003/"
+  # - 02: 
+  #   - threat_rule:
+  #     - framework = "MITRE ATT&CK"
+  #   - technique:
+  #     - id = "T1556"
+  #     - name = "Modify Authentication Process"
+  #     - reference = "https://attack.mitre.org/techniques/T1556/"
+  #     # - subtechnique:
+  #     #   - id = "T1547.006"
+  #     #   - name ="Kernel Modules and Extensions"
+  #     #   - reference = "https://attack.mitre.org/techniques/T1547/006/"
+  #   - tactic:
+  #     - id = "TA0006"
+  #     - name = "Credential Access"
+  #     - reference = "https://attack.mitre.org/tactics/TA0006/"
+
+
+#filter:
+#- term:
+#    event.code: 751
+    
+
+# eql:
+  # "query": " process where process.name == \"services.exe\""
+  
+# kql:
+#   "query": {"query_string": {"query": "event.code : 967" }  }
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

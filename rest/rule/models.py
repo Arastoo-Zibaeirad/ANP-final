@@ -4,9 +4,9 @@ import requests
 import random
 import json
 import yaml
-from django.core.files.base import ContentFile, File
-import time
 from elasticsearch import Elasticsearch
+from django.core.exceptions import ValidationError
+from .config import es_url
 # from django.db.models.signals import post_save
 
 # class StrategyManager(models.Manager):
@@ -91,11 +91,14 @@ from elasticsearch import Elasticsearch
 #         return rule
         
 class Rule(models.Model):
+    """
+    This is the main model that connected to Query, Config, and Strategy. 
+    total file would be completed after creating a rule. In fact, total is for final query.
+    """
     name = models.CharField(max_length=200)
     index_name = models.TextField(blank=True, null=True)
     create_time = models.DateTimeField(auto_now_add=True)
     modified_time = models.DateTimeField(auto_now=True)
-    # rule_file = models.FileField(blank=True, upload_to='')
     CREATE_RULE = 'create_rule'
     STRATEGY = 'strategy'
     flag_fields = (
@@ -104,52 +107,24 @@ class Rule(models.Model):
     )
     flag = models.CharField(max_length=250, blank=True, null=True, choices=flag_fields, default=CREATE_RULE)
     total = models.TextField(blank=True, null=True)
-    # DisplayFields = ['id', 'name', 'index_name', 'sequence' ,'flag','create_time', 'modified_time','total', 'total_property']
-
     # objects = CustomRuleManager()
     # default_manager = CustomRuleManager()
 
-    # def save(self, *args, **kwargs):
-        # x=""
-        # queries = self.queries.all()
-        # if self.sequence == 'has no conf':
-        #     return "has no conf"
-        # else:
-        #     if self.sequence == False:
-        #         z = (f"{queries.event_category} where {queries.condition}")
-        #     elif self.sequence == True:
-        #         for i in range (len(queries)):
-        #             print(i)
-        #             c = (f"[{queries[i].event_category} where {queries[i].condition}]\\n  ")
-        #             x +=  c
-        #         z = "sequence\\n " + x
-        #     self.total = queries
-            
-          # super().save(*args, **kwargs)   
-            
-            
-        # if self.flag == 'create_rule':
-        #     if self.sequence == False:
-        #         z = (f"{queries.event_category} where {queries.condition}")
-        #         self.total = z
-        #     elif self.sequence == True:
-        #         for i in range (len(queries)):
-        #             c = (f"[{queries[i].event_category} where {queries[i].condition}]\\n  ")
-        #             x +=  c
-        #         z = "sequence\\n " + x
-        #         self.total = z
-        
     @property
     def index_alias(self):
+        """
+        In this part, if we write more than one index name in the field of index, this property function 
+        would create an alias for this rule and put all those indices in the alias.
+        """
         indices_name = self.index_name.split(", ")
         index = []
         for indx in indices_name:
             index.append(indx)
 
         if len(index) >= 2:
-            print(len(index))
+            # print(len(index))
             print("you should define an alias")
-            url = 'http://192.168.250.123:9200/_aliases?pretty'
+            url = f'http://{es_url}/_aliases?pretty'
             headers = {
             'Content-Type': 'application/json'
             }
@@ -169,41 +144,80 @@ class Rule(models.Model):
             except:
                 print("ERROR")
         return indices_name
-
-    def total_method(self):
-        
-        queries = self.queries.all()
-        if self.sequence == 'has no conf':
-            return "has no conf"
-        else:
-            if self.sequence == False:
-                z = (f"{queries.event_category} where {queries.condition}")
-            elif self.sequence == True:
-                x=f""
-                z = ""
-                for i in range (len(queries)):
-                    # b = "sequence\\n "
-                    c = f"[{queries[i].event_category} where {queries[i].condition}]\\n "
-                    x += c
-                print("XXX",x)
-                z = "sequence\\n" + str(x)
-                print("ZZZZZZZZZZZZZZZZZZZZ: ",z)
-        self.total = z
-        self.save()
-        return x, z
-            
-    @property
+    
+    
     def sequence(self):
+        """
+        if the sequence that defined in the Config model is true, it would use sequenced query.
+        """
+        config = self.config.all()
         try:
-            if self.config.sequence == False:
+            if config.sequence == False:
                 return False
-            elif self.flag == 'strategy':
-                return True
+            # elif self.flag == 'strategy':
+            #     return True
             else:
                 return True
         except:
-            return 'has no conf'    
+            return 'has no conf'
+    
+    # @property
+    def total_method(self):
+        """
+        This would combined queries to each other. If we use sequence in Config model we have a different total query.
+        finally, this will fill the total field that we discussed before.
+        """
+        queries = self.queries.all()
+        # if self.sequence == 'has no conf':
+        #     return "has no conf"
+        # else:
+        if self.sequence == False:
+            z = (f"{queries.event_category} where {queries.condition}")
+        else:
+            x=f""
+            z = ""
+            for i in range (len(queries)):
+                c = f"[{queries[i].event_category} where {queries[i].condition}]\\n "
+                x += c
+            
+            z = "sequence\\n " + str(x)
+        self.total = z
+        self.save(update_fields=["total"])
 
+        return x, z
+    
+    def clean(self):
+        """
+        if the index that we write in the rule is not defined in the elasticsearch, it would not allow to 
+        create the rule. You must first create the index then add the rule.
+        """
+        es = Elasticsearch([f'{es_url}'],)
+        
+        get_index_from_elastic = []
+        for index in es.indices.get('*'):
+            get_index_from_elastic.append(index)
+        
+        if self.index_name not in get_index_from_elastic:
+            raise ValidationError("index not found")
+        super(Rule, self).clean()
+    
+    # def handling_index(self):
+        
+    #     es = Elasticsearch(['192.168.250.123'],)
+    #     get_index_from_elastic = []
+    #     # k = 0
+    #     for index in es.indices.get('*'):
+    #         get_index_from_elastic.append(index)
+        
+    #     # for ii in get_index_from_elastic:
+    #     if self.index_name not in get_index_from_elastic: 
+    #         # k += 1
+    #         self.index_name = ""
+    #     else:
+    #         self.index_name = self.index_name
+        
+    #     return self.index_name
+        
     class Meta:
         verbose_name = 'Rule'
         verbose_name_plural = 'Rules'
@@ -211,8 +225,11 @@ class Rule(models.Model):
     def __str__(self):
         return f"{self.name}"
 
-
 class Query(models.Model):
+    """
+    we can have one query or more than that, but if you want to add more than one query
+    you should activate the sequence boolean key. Only event_category and condition work.
+    """
     rule = models.ForeignKey(Rule, on_delete=models.CASCADE, related_name='queries')
     
     ANY = 'any'
@@ -261,6 +278,10 @@ class Query(models.Model):
     # default_manager = QueryManager()
     # objects = QueryManager()
 
+    # def save(self, *args, **kwargs):
+    #     super(Query, self).save(*args, **kwargs)
+    #     self.rule.total = self.rule.total_method
+
     class Meta:
         verbose_name = 'Query'
         verbose_name_plural = 'Queries'
@@ -269,17 +290,37 @@ class Query(models.Model):
         return f"{self.rule}"  
        
 class Config(models.Model):
+    """
+    Only sequence works.
+    """
     rule = models.OneToOneField(Rule, on_delete=models.CASCADE, related_name='config')
     sequence = models.BooleanField(default=False)
     until = models.BooleanField(default=False)
     maxspan = models.BooleanField(default=False)
     size = models.BooleanField(default=False)
     
+    # def sequence(self):
+        
+    #     # config = self.rule.config
+    #     try:
+    #         if self.sequence == False:
+    #             return False
+    #         # elif self.flag == 'strategy':
+    #         #     return True
+    #         else:
+    #             return True
+    #     except:
+    #         return 'has no conf'
+    
     def __str__(self):
         return f"{self.rule}"
     
 class Strategy(models.Model):
-    rules = models.ManyToManyField(Rule, related_name='strategies', through='Order')
+    """
+    When we want to combine some rule, strategy, rule and strategy together we use
+    strategy.
+    """
+    rules = models.ManyToManyField("Rule", through='Order')
     strategy_name = models.CharField(max_length=100)
     create_time = models.DateTimeField(auto_now_add=True)
     modified_time = models.DateTimeField(auto_now=True)
@@ -295,21 +336,7 @@ class Strategy(models.Model):
     
     def __str__(self):
         return f"{self.strategy_name}"
-    "**************************************************************"
-    # def total_method_strategy(self):
-    #     rules = self.rules.all()
-    #     if len(rules) != 0:
-    #         y = ""
-    #         for rule in rules:
-    #             queries = rule.queries.all()   
-    #             x = ""
-    #             for i in range (len(queries)):
-    #                 c = (f"[{queries[i].event_category} where {queries[i].condition}]\\n ")
-    #                 x +=  c
-    #             y += x
-    #         z = "sequence\\n " + y
-        # return (z,y)
-        
+
     def final_query(self):
         strategies = self.stra.all()
         rules = self.rules.all()
@@ -358,9 +385,9 @@ class Strategy(models.Model):
         collect_index_name = ""
         for i in indices:
             collect_index_name += i
-        es = Elasticsearch(['192.168.250.123'],)
-        if len(indices) >= 1:
-            url = 'http://192.168.250.123:9200/_aliases?pretty'
+        es = Elasticsearch([f'{es_url}'],)
+        if len(indices) > 1:
+            url = f'http://{es_url}/_aliases?pretty'
             headers = {
             'Content-Type': 'application/json'
             }
@@ -371,50 +398,105 @@ class Strategy(models.Model):
                 alias = "Exist"
             except:
                 alias = "Not Exist"
+                
             if alias == "Exist":
                 indices = alias_name
             else:
-                try:
-                    """
-                    This is for handling errors. we send a request to Elasticsearch to get the list of all indices and if one of the indices does not in 
-                    in the list, then alias should not be created.
-                    """
-                    get_index_from_elastic = []
-                    k = 0
-                    for index in es.indices.get('*'):
-                        get_index_from_elastic.append(index)
-                    for ii in indices:
-                        if ii not in get_index_from_elastic: 
-                            k += 1
-                    print(k)
-                    if k == 0:
-                        res1 = requests.post(url, headers=headers, data=data)
-                        res = res1.json()
-                        indices = alias_name
-                        print("Response: ", res)
-
-                    else:                        
-                        self.final_query = "error"
-                        raise "error"
+                # try:
+                """
+                This is for handling errors. we send a request to Elasticsearch to get the list of all indices and if one of the indices does not 
+                in the list, then alias should not be created.
+                """
+                get_index_from_elastic = []
+                k = 0
+                for index in es.indices.get('*'):
+                    get_index_from_elastic.append(index)
+                    
+                for ii in indices:
+                    if ii not in get_index_from_elastic: 
+                        k += 1
                         
-                except:
-                    print("ERROR stratey alias")
-                    return None
-      
-            self.strategy_alias = indices
-            self.save()
-            return indices
-        
-    # def save(self, *args, **kwargs):
-    #     if self.strategy_index() == "error":
-    #         Strategy.objects.all() == None
-            
-    #     return super(Strategy, self).save(*args, **kwargs)   
-    
-    # def get():
-    #     """do not create an object if an index is not exist
-    #     """
+                if k == 0:
+                    res1 = requests.post(url, headers=headers, data=data)
+                    res = res1.json()
+                    indices = alias_name
+                    print("Response: ", res)
+                    
+                else:              
+                    indices = ""
+                                            
+                # except:  
+                #     print("####################################","ERROR stratey alias")
+                #     return "raise error"
+            self.strategy_alias = ' '.join(indices)
+            # self.save()
+        else:
+            self.strategy_alias = ' '.join(indices)
+            # self.save() 
 
+        return indices
+    
+    def clean(self):
+        """This is for handling errors in save method. 
+            we cannot do handling errors in save because
+            we confront 1000 errors.
+        """
+        if self.strategy_alias == '':
+            raise ValidationError("index not found")
+        super(Strategy, self).clean()
+        
+        
+    def save(self, *args, **kwargs):
+        
+        # if self.strategy_alias=='':
+        #     # print(self.id)
+        #     # self.delete()
+        #     return #prevent save
+        #     # record = Strategy.objects.filter(id=self.id)
+        #     # print(record)
+        #     # record.clear()
+        # else:
+        #     # super(Strategy, self).save(*args, **kwargs)
+        super(Strategy, self).save(*args, **kwargs)
+        instance = Strategy.objects.last()
+        
+        dict_file = """
+        ANPdata:
+        - creation_date = "%s"
+        - maturity = "production"
+        - updated_date = "%s"
+        
+        ANPrule:
+        - author= ["ANP"]
+        - language= "eql"
+        
+        name: "%s"
+
+        index: %s
+
+        type: frequency
+        num_events: 1
+        timeframe:
+        hours: 1
+        
+        eql:
+         query: "%s"
+
+        alert:
+        - "slack"
+
+        slack:
+        slack_webhook_url: "https://hooks.slack.com/services/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"
+
+        """%(instance.create_time, instance.modified_time, instance.strategy_name, instance.strategy_alias, instance.strategy_total)
+                
+        dict_file = yaml.safe_load(dict_file)          
+        with open(f'D:\\Downloads\\VSCode\\elastalert\\rest\\Aras_strategy_{instance.strategy_name}.yaml', 'w') as file:
+            yaml.dump(dict_file, file, width=1000)
+        # except ValueError:
+        #     print("error")
+            
+        
 class Order(models.Model):
     strategy = models.ForeignKey(Strategy, on_delete=models.CASCADE, related_name='stra')
     order = models.AutoField(primary_key=True)

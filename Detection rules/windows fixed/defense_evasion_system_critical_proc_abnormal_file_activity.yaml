@@ -1,0 +1,59 @@
+ANPdata:
+- creation_date = "2021/8/7"
+- maturity = "production"
+- updated_date = "2021/8/7"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Identifies an unexpected executable file being created or modified by a Windows system critical process, which may
+    indicate activity related to remote code execution or other forms of exploitation."
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+- risk_score: 73
+
+- rule_id: "e94262f2-c1e9-4d3f-a907-aeab16712e1a"
+
+- severity: "high"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Defense Evasion"]
+
+- type: "eql"
+
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1211",
+        name : "Exploitation for Defense Evasion",
+        reference : "https://attack.mitre.org/techniques/T1211/"
+      ],
+      tactic: [
+        id : "TA0005",
+        name : "Defense Evasion",
+        reference : "https://attack.mitre.org/tactics/TA0005/"]]]
+
+name: "Unusual Executable File Creation by a System Critical Process"
+index: .ds-winlogbeat-8.0.0-2022.02.19-000001
+type: any
+eql:
+  "query": "file where event.type != \"deletion\" and
+    file.extension : (\"exe\", \"dll\") and
+    process.name : (\"smss.exe\",
+                    \"autochk.exe\",
+                    \"csrss.exe\",
+                    \"wininit.exe\",
+                    \"services.exe\",
+                    \"lsass.exe\",
+                    \"winlogon.exe\",
+                    \"userinit.exe\",
+                    \"LogonUI.exe\")"
+
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

@@ -1,0 +1,103 @@
+ANPdata:
+- creation_date = "2021/8/11"
+- maturity = "production"
+# - query_schema_validation = false
+- updated_date = "2021/8/11"
+# - min_stack_version = "7.12.0"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Identifies the loading of a non Microsoft signed DLL that is missing on a default Windows install (phantom DLL) or one
+    that can be loaded from a different location by a native Windows process. This may be abused to persist or elevate
+    privileges via privileged file write vulnerabilities."
+
+# - false_positives:  ["""Legitimate local user creations may be done by a system or network administrator. Verify whether this is known
+    # behavior in your environment. Local user creations from unfamiliar users or hosts should be investigated. If known
+    # behavior is causing false positives, it can be exempted from the rule."""]
+
+# - interval: "60m"
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+# - note: """## Triage and analysis Decode the base64 encoded Tasks Actions registry value to investigate the task's configured action."""
+
+- references: ["https://itm4n.github.io/windows-dll-hijacking-clarified/", "http://remoteawesomethoughts.blogspot.com/2019/05/windows-10-task-schedulerservice.html", "https://googleprojectzero.blogspot.com/2018/04/windows-exploitation-tricks-exploiting.html", "https://shellz.club/edgegdi-dll-for-persistence-and-lateral-movement/", "https://windows-internals.com/faxing-your-way-to-system/", "http://waleedassar.blogspot.com/2013/01/wow64logdll.html"]
+
+# - max_signals: 33
+
+- risk_score: 73
+
+- rule_id: "bfeaf89b-a2a7-48a3-817f-e41829dc61ee"
+
+- severity: "high"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Persistence", "Privilege Escalation"]
+
+- type: "eql"
+
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1574",
+        name : "Hijack Execution Flow",
+        reference : "https://attack.mitre.org/techniques/T1574/",
+        subtechnique: [
+          [id : "T1574.002",        
+          name : "DLL Side-Loading",        
+          reference : "https://attack.mitre.org/techniques/T1574/002/"]
+        ]
+      ],
+      tactic: [
+        id : "TA0004",
+        name : "Privilege Escalation",
+        reference : "https://attack.mitre.org/tactics/TA0004/"]],
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1574",
+        name : "Hijack Execution Flow",
+        reference : "https://attack.mitre.org/techniques/T1574/",
+        subtechnique: [
+          [id : "T1574.001",        
+          name : "DLL Search Order Hijacking",        
+          reference : "https://attack.mitre.org/techniques/T1574/001/"]
+        ]
+      ],
+      tactic: [
+        id : "TA0003",
+        name : "Persistence",
+        reference : "https://attack.mitre.org/tactics/TA0003/"]
+    ]
+  ]
+name: "Suspicious DLL Loaded for Persistence or Privilege Escalation"
+index: anp-log-agentbase-winclient
+type: any
+eql:
+  "query": "library where dll.name :
+      (
+      \"wlbsctrl.dll\",
+      \"wbemcomn.dll\",
+      \"WptsExtensions.dll\",
+      \"Tsmsisrv.dll\",
+      \"TSVIPSrv.dll\",
+      \"Msfte.dll\",
+      \"wow64log.dll\",
+      \"WindowsCoreDeviceInfo.dll\",
+      \"Ualapi.dll\",
+      \"wlanhlp.dll\",
+      \"phoneinfo.dll\",
+      \"EdgeGdi.dll\",
+      \"cdpsgshims.dll\",
+      \"windowsperformancerecordercontrol.dll\",
+      \"diagtrack_win.dll\"
+      ) and 
+    not (dll.code_signature.subject_name : (\"Microsoft Windows\", \"Microsoft Corporation\") and dll.code_signature.status : \"trusted\")"
+
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

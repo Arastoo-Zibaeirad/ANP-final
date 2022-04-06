@@ -1,0 +1,55 @@
+ANPdata:
+- creation_date = "2021/08/08"
+- maturity = "production"
+- updated_date = "2021/08/08"
+
+ANPrule:
+- author = ["Elastic"]
+
+- description = """Identifies the execution of the Automator Workflows process followed by a network connection from it's XPC service.
+    Adversaries may drop a custom workflow template that hosts malicious JavaScript for Automation (JXA) code as an
+    alternative to using osascript."""
+
+- language = "eql"
+
+- license = "Elastic License v2"
+
+- references = ["https://posts.specterops.io/persistent-jxa-66e1c3cd1cf5"]
+
+- risk_score = 47
+
+- rule_id = "5d9f8cfc-0d03-443e-a167-2b0597ce0965"
+
+- severity = "medium"
+
+- tags = ["Elastic", "Host", "macOS", "Threat Detection", "Execution"]
+
+- type = "eql"
+
+name: "Suspicious Automator Workflows Execution"
+
+index: ["auditbeat-*", "logs-endpoint.events.*"]
+
+type: any
+
+eql: 
+  "query": "sequence by host.id with maxspan=30s [process where event.type in (\"start\", \"process_started\") and process.name == \"automator\"] [network where process.name:\"com.apple.automator.runner\"]"
+
+threat:
+  - 01:
+    - threat_rule: 
+      - framework = "MITRE ATT&CK"
+    - technique:
+      - id = "T1059"
+      - name = "Command and Scripting Interpreter"
+      - reference = "https://attack.mitre.org/techniques/T1059/"
+    - tactic:
+      - id = "TA0002"
+      - name =  "Execution"
+      - reference = "https://attack.mitre.org/tactics/TA0002/"
+      
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

@@ -22,6 +22,11 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework import routers
 from django_filters.rest_framework import DjangoFilterBackend 
 
+import sqlite3
+import yaml
+import time
+import os, re
+ 
 class UserViewSet(ModelViewSet):
     queryset = get_user_model().objects.all()
     serializer_class = UserSerializer
@@ -69,17 +74,105 @@ class OrderViewSet(ModelViewSet):
     serializer_class = OrderSerializer
 
 
+def create_rule_file(request):
+    """first delete all strategy and rule files"""
+    
+    dir = "/root/Elastalert/backapi/rest"
+    pattern = "Aras_*"
+    for f in os.listdir(dir):
+        if re.search(pattern, f):
+            os.remove(os.path.join(dir, f))
+            
+    time.sleep(0)
+    
+    conn = sqlite3.connect('/root/Elastalert/backapi/rest/db.sqlite3')
 
+    """This is for creating strategy yaml file"""
+    cursor_strategy = conn.execute("SELECT * FROM rule_strategy")
+    for row in cursor_strategy:
+        strategy_name = row [1]
+        create_time = row [2]
+        modified_time = row [3]
+        strategy_alias = row [4]
+        strategy_total = row [5]
+        dict_file = """
+        ANPdata:
+        - creation_date = "%s"
+        - maturity = "production"
+        - updated_date = "%s"
+        
+        ANPrule:
+        - author: ["ANP"]
+        - language : "eql"
+        
+        name: "%s"
 
+        index: %s
 
+        type: frequency
+        num_events: 1
+        timeframe:
+          hours: 1
+        
+        eql:
+          query: "%s"
 
+        alert:
+        - "slack"
 
+        slack:
+        slack_webhook_url: "https://hooks.slack.com/services/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"
 
+        """%(create_time, modified_time, strategy_name, strategy_alias, strategy_total)
+                        
+        dict_file = yaml.safe_load(dict_file)          
+        with open(f'/root/Elastalert/elastalert/example_rules/Aras_strategy_{strategy_name}.yaml', 'w') as file:
+            yaml.dump(dict_file, file, width=1000)
 
+    """This is for creating rule yaml file"""
+    cursor_rule = conn.execute("SELECT * FROM rule_rule")
+    for row in cursor_rule:
+        name = row [1]
+        index_name = row [2]
+        create_time = row [3]
+        modified_time = row [4]
+        total = row [6]
+        dict_file = """
+        ANPdata:
+        - creation_date = "%s"
+        - maturity = "production"
+        - updated_date = "%s"
+        
+        ANPrule:
+        - author: ["ANP"]
+        - language : "eql"
+        
+        name: "%s"
 
+        index: %s
 
+        type: frequency
+        num_events: 1
+        timeframe:
+          hours: 1
+        
+        eql:
+          query: "%s"
 
+        alert:
+        - "slack"
 
+        slack:
+        slack_webhook_url: "https://hooks.slack.com/services/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"
+
+        """%(create_time, modified_time, name, index_name, total)
+                        
+        dict_file = yaml.safe_load(dict_file)          
+        with open(f'/root/Elastalert/elastalert/example_rules/Aras_rule_{name}.yaml', 'w') as file:
+            yaml.dump(dict_file, file, width=1000)
+    print(dict_file)    
+    conn.close()
+    return response.HttpResponse("all Yaml files are created !")
 
 ###apiview
 # class RuleList(ListCreateAPIView):
@@ -105,28 +198,6 @@ class OrderViewSet(ModelViewSet):
     
 
     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

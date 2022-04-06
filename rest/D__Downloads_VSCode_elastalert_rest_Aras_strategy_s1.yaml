@@ -1,0 +1,19 @@
+ANPdata:
+- creation_date = "2022-04-03 10:10:38.042668+00:00"
+- maturity = "production"
+- updated_date = "2022-04-03 10:53:00.950248+00:00"
+ANPrule:
+- author= ["ANP"]
+- language= "eql"
+alert:
+- slack
+eql:
+  query: "sequence\n [any where event.code == 100]\n [any where process.args == .hs]\n [any where event.code == 110]\n [any where event.code == 111]\n "
+hours: 1
+index: winlogbeat-7.15.0-2022.02.21-000001
+name: s1
+num_events: 1
+slack: null
+slack_webhook_url: https://hooks.slack.com/services/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
+timeframe: null
+type: frequency

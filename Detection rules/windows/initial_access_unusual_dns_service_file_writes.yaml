@@ -1,0 +1,68 @@
+ANPdata:
+- creation_date = "2021/8/10"
+- maturity = "production"
+# - query_schema_validation = false
+- updated_date = "2021/8/10"
+# - min_stack_version = "7.12.0"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Identifies an unexpected file being modified by dns.exe, the process responsible for Windows DNS Server services, which
+    may indicate activity related to remote code execution or other forms of exploitation."
+
+# - false_positives:  ["""Werfault.exe will legitimately spawn when dns.exe crashes, but the DNS service is very stable and so this is a low
+    # occurring event. Denial of Service (DoS) attempts by intentionally crashing the service will also cause werfault.exe
+    # to spawn."""]
+
+# - interval: "60m"
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+- note: "## Triage and analysis Investigating Unusual File Write Detection alerts from this rule indicate potential unusual/abnormal file writes from the DNS Server service process (`dns.exe`) after exploitation from CVE-2020-1350 (SigRed) has occurred. Here are some possible avenues of investigation - Post-exploitation, adversaries may write additional files or payloads to the system as additional discovery/exploitation/persistence mechanisms.- Any suspicious or abnormal files written from `dns.exe` should be reviewed and investigated with care."
+
+- references: ["https://research.checkpoint.com/2020/resolving-your-way-into-domain-admin-exploiting-a-17-year-old-bug-in-windows-dns-servers/", "https://msrc-blog.microsoft.com/2020/07/14/july-2020-security-update-cve-2020-1350-vulnerability-in-windows-domain-name-system-dns-server/"]
+
+# - max_signals: 33
+
+- risk_score: 73
+
+- rule_id: "c7ce36c0-32ff-4f9a-bfc2-dcb242bf99f9"
+
+- severity: "high"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Initial Access"]
+
+- type: "eql"
+
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1133",
+        name : "External Remote Services",
+        reference : "https://attack.mitre.org/techniques/T1133/"
+      ],
+      tactic: [
+        id : "TA0001",
+        name : "Initial Access",
+        reference : "https://attack.mitre.org/tactics/TA0001/"]
+    ]
+  ]
+
+
+name: "Unusual File Modification by dns.exe"
+index: anp-log-agentbase-winclient
+
+type: any
+eql:
+  "query": "file where process.name : \"dns.exe\" and event.type in (\"creation\", \"deletion\", \"change\") and
+    not file.name : \"dns.log\""
+
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

@@ -1,0 +1,64 @@
+ANPdata:
+- creation_date = "2021/8/4"
+- maturity = "production"
+- updated_date = "2021/8/4"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Identifies modifications to the registered Subject Interface Package (SIP) providers. SIP providers are used by the Windows cryptographic system to validate file signatures on the system. This may be an attempt to bypass signature validation checks or inject code into critical processes."
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+- note: "## Triage and analysis Verify process details such as command line and hash to confirm this activity legitimacy."
+
+- references: ["https://github.com/mattifestation/PoCSubjectInterfacePackage"]
+
+- risk_score: 47
+
+- rule_id: "f2c7b914-eda3-40c2-96ac-d23ef91776ca"
+
+- severity: "medium"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Defense Evasion"]
+
+- type: "eql"
+
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1553",
+        name : "Subvert Trust Controls",
+        reference : "https://attack.mitre.org/techniques/T1553/",
+        subtechnique: [
+          [id : "T1553.003",        
+          name : "SIP and Trust Provider Hijacking",        
+          reference : "https://attack.mitre.org/techniques/T1553/003/"]
+        ]
+      ],
+      tactic: [
+        id : "TA0005",
+        name : "Defense Evasion",
+        reference : "https://attack.mitre.org/tactics/TA0005/"]]]
+
+name: "SIP Provider Modification"
+index: anp-log-agentbase-winclient
+type: any
+eql:
+  "query": "registry where event.type:\"change\" and
+    registry.path: (
+      \"HKLM\\\\SOFTWARE\\\\Microsoft\\\\Cryptography\\\\OID\\\\EncodingType 0\\\\CryptSIPDllPutSignedDataMsg\\\\{*}\\\\Dll\",
+      \"HKLM\\\\SOFTWARE\\\\WOW6432Node\\\\Microsoft\\\\Cryptography\\\\OID\\\\EncodingType 0\\\\CryptSIPDllPutSignedDataMsg\\\\{*}\\\\Dll\",
+      \"HKLM\\\\SOFTWARE\\\\Microsoft\\\\Cryptography\\\\Providers\\\\Trust\\\\FinalPolicy\\\\{*}\\\\$Dll\",
+      \"HKLM\\\\SOFTWARE\\\\WOW6432Node\\\\Microsoft\\\\Cryptography\\\\Providers\\\\Trust\\\\FinalPolicy\\\\{*}\\\\$Dll\"
+      ) and
+    registry.data.strings:\"*.dll\""
+
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

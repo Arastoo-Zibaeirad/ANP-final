@@ -1,0 +1,64 @@
+ANPdata:
+- creation_date = "2021/08/09"
+- maturity = "production"
+- updated_date = "2021/08/09"
+
+ANPrule:
+- author = ["Elastic"]
+
+- description = """Identifies execution of the Apple script interpreter (osascript) without a password prompt and with administrator
+    privileges."""
+
+- language = "eql"
+
+- license = "Elastic License v2"
+
+- references = ["https://discussions.apple.com/thread/2266150"]
+
+- risk_score = 47
+
+- rule_id = "827f8d8f-4117-4ae4-b551-f56d54b9da6b"
+
+- severity = "medium"
+
+- tags = ["Elastic", "Host", "macOS", "Threat Detection", "Execution", "Privilege Escalation"]
+
+- type = "eql"
+
+name: "Apple Scripting Execution with Administrator Privileges"
+
+index: ["auditbeat-*", "logs-endpoint.events.*"]
+
+type: any
+
+eql: 
+  "query": "process where event.type in (\"start\", \"process_started\") and process.name : \"osascript\" and\n  process.command_line : \"osascript*with administrator privileges\""
+
+threat:
+  - 01:
+    - threat_rule: 
+      - framework = "MITRE ATT&CK"
+    - technique:
+      - id = "T1078"
+      - name = "Valid Accounts"
+      - reference = "https://attack.mitre.org/techniques/T1078/"
+    - tactic:
+      - id = "TA0004"
+      - name =  "Privilege Escalation"
+      - reference = "https://attack.mitre.org/tactics/TA0004/"
+  - 02:
+    - threat_rule: 
+      - framework = "MITRE ATT&CK"
+    - technique:
+      - id = "T1059"
+      - name = "Command and Scripting Interpreter"
+      - reference = "https://attack.mitre.org/techniques/T1059/"
+    - tactic:
+      - id = "TA0002"
+      - name =  "Execution"
+      - reference = "https://attack.mitre.org/tactics/TA0002/"
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

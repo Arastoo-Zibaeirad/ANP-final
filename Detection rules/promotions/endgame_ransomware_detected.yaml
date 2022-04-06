@@ -1,0 +1,42 @@
+ANPdata:
+- creation_date = "2021/08/07"
+- maturity = "production"
+- updated_date = "2021/08/07"
+
+ANPrule:
+- author = ["Elastic"]
+
+- description = """Elastic Endgame detected Ransomware. Click the Elastic Endgame icon in the event.module column or the link in the
+    rule.reference column for additional information."""
+
+- interval = "10m"
+
+- language = "kuery"
+
+- license = "Elastic License v2"
+
+- risk_score = 99
+
+- rule_id =  "8cb4f625-7743-4dfb-ae1b-ad92be9df7bd"
+
+- severity = "critical"
+
+- tags = ["Elastic", "Elastic Endgame"]
+
+- type = "query"
+
+name: "Ransomware - Detected - Elastic Endgame"
+
+index: ["endgame-*"]
+
+type: any
+
+kql:
+  "query": {"query_string": {"query": "event.kind:alert and event.module:endgame and endgame.metadata.type:detection and (event.action:ransomware_event or endgame.event_subtype_full:ransomware_event)"}}
+
+
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

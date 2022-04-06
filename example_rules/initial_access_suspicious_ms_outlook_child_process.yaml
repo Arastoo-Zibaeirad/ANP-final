@@ -1,0 +1,79 @@
+ANPdata:
+- creation_date = "2021/8/10"
+- maturity = "production"
+# - query_schema_validation = false
+- updated_date = "2021/8/10"
+# - min_stack_version = "7.12.0"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Identifies suspicious child processes of Microsoft Outlook. These child processes are often associated with spear
+    phishing activity."
+
+# - false_positives:  ["""Legitimate processes may be spawned from the Microsoft Exchange Server Unified Messaging (UM) service. If known
+#     processes are causing false positives, they can be exempted from the rule."""]
+
+# - interval: "60m"
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+# - note: """"""
+
+# - references: ["https://www.microsoft.com/security/blog/2021/03/02/hafnium-targeting-exchange-servers", "https://www.volexity.com/blog/2021/03/02/active-exploitation-of-microsoft-exchange-zero-day-vulnerabilities", "https://discuss.elastic.co/t/detection-and-response-for-hafnium-activity/266289"]
+
+# - max_signals: 33
+
+- risk_score: 21
+
+- rule_id: "32f4675e-6c49-4ace-80f9-97c9259dca2e"
+
+- severity: "low"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Initial Access"]
+
+- type: "eql"
+
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1566",
+        name : "Phishing",
+        reference : "https://attack.mitre.org/techniques/T1566/",
+        subtechnique: [
+          [id : "T1566.001",        
+          name : "Spearphishing Attachment",        
+          reference : "https://attack.mitre.org/techniques/T1566/001/"]
+        ]
+      ],
+      tactic: [
+        id : "TA0001",
+        name : "Initial Access",
+        reference : "https://attack.mitre.org/tactics/TA0001/"]
+    ]
+  ]
+
+name: "Suspicious MS Outlook Child Process"
+index: .ds-winlogbeat-8.0.0-2022.02.19-000001
+
+type: any
+eql:
+  "query": "process where event.type in (\"start\", \"process_started\") and
+    process.parent.name : \"outlook.exe\" and
+    process.name : (\"Microsoft.Workflow.Compiler.exe\", \"arp.exe\", \"atbroker.exe\", \"bginfo.exe\", \"bitsadmin.exe\",
+                    \"cdb.exe\", \"certutil.exe\", \"cmd.exe\", \"cmstp.exe\", \"cscript.exe\", \"csi.exe\", \"dnx.exe\", \"dsget.exe\",
+                    \"dsquery.exe\", \"forfiles.exe\", \"fsi.exe\", \"ftp.exe\", \"gpresult.exe\", \"hostname.exe\", \"ieexec.exe\",
+                    \"iexpress.exe\", \"installutil.exe\", \"ipconfig.exe\", \"mshta.exe\", \"msxsl.exe\", \"nbtstat.exe\", \"net.exe\",
+                    \"net1.exe\", \"netsh.exe\", \"netstat.exe\", \"nltest.exe\", \"odbcconf.exe\", \"ping.exe\", \"powershell.exe\",
+                    \"pwsh.exe\", \"qprocess.exe\", \"quser.exe\", \"qwinsta.exe\", \"rcsi.exe\", \"reg.exe\", \"regasm.exe\",
+                    \"regsvcs.exe\", \"regsvr32.exe\", \"sc.exe\", \"schtasks.exe\", \"systeminfo.exe\", \"tasklist.exe\",
+                    \"tracert.exe\", \"whoami.exe\", \"wmic.exe\", \"wscript.exe\", \"xwizard.exe\")"
+
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

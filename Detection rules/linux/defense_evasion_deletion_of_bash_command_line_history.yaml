@@ -1,0 +1,81 @@
+ANPdata:
+- creation_date = "2021/7/28"
+- maturity = "production"
+- updated_date = "2021/7/28"
+ANPrule:
+- author = ["Elastic"]
+
+- description = """
+    Adversaries may attempt to clear or disable the Bash command-line history in an attempt to evade detection or forensic investigations."""
+
+# - false_positives = ["Automated tools such as Jenkins may encode or decode files as part of their normal behavior. These events can be filtered by the process executable or username values."]
+
+- language = "eql"
+
+- license = "Elastic License v2"
+
+# - references = ["https://github.com/eset/malware-ioc/tree/master/sshdoor","https://www.welivesecurity.com/wp-content/uploads/2021/01/ESET_Kobalos.pdf"]
+
+- risk_score = 47
+
+- rule_id = "7bcbb3ac-e533-41ad-a612-d6c3bf666aba"
+
+- severity = "medium"
+
+- tags = ["Elastic", "Host", "Linux", "Threat Detection", "Defense Evasion"]
+
+- type = "eql"
+name: "Tampering of Bash Command-Line History"
+index: ["auditbeat-*", "logs-endpoint.events.*"]
+type: any
+eql:
+  "query": "process where event.type in (\"start\", \"process_started\") and\n (  (process.args : (\"rm\", \"echo\") and process.args : (\".bash_history\", \"/root/.bash_history\", \"/home/*/.bash_history\")) or\n  (process.name : \"history\" and process.args : \"-c\") or\n  (process.args : \"export\" and process.args : (\"HISTFILE=/dev/null\", \"HISTFILESIZE=0\")) or\n  (process.args : \"unset\" and process.args : \"HISTFILE\") or\n  (process.args : \"set\" and process.args : \"history\" and process.args : \"+o\") )"
+threat:
+  - 01:
+    - threat_rule: 
+      - framework = "MITRE ATT&CK"
+    - technique: 
+      - id = "T1070"
+      - name = "Indicator Removal on Host"
+      - reference = "https://attack.mitre.org/techniques/T1070/"
+      - subtechnique:
+        - id = "T1070.003"
+        - name = "Clear Command History"
+        - reference = "https://attack.mitre.org/techniques/T1070/003/"   
+    - tactic:
+      - id = "TA0005"
+      - name = "Defense Evasion"
+      - reference = "https://attack.mitre.org/tactics/TA0005/"
+  # - 02: 
+  #   - threat_rule:
+  #     - framework = "MITRE ATT&CK"
+  #   - technique:
+  #     - id = "T1027"
+  #     - name = "Obfuscated Files or Information"
+  #     - reference = "https://attack.mitre.org/techniques/T1027/"
+  #     # - subtechnique:
+  #     #   - id = "T1560.001"
+  #     #   - name = "Archive via Utility"
+  #     #   - reference = "https://attack.mitre.org/techniques/T1560/001/"
+  #   - tactic:
+  #     - id = "TA0005"
+  #     - name = "Defense Evasion"
+  #     - reference = "https://attack.mitre.org/tactics/TA0005/"
+
+
+#filter:
+#- term:
+#    event.code: 751
+    
+
+# eql:
+  # "query": " process where process.name == \"services.exe\""
+  
+# kql:
+#   "query": {"query_string": {"query": "event.code : 967" }  }
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

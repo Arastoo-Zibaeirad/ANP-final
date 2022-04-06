@@ -1,0 +1,64 @@
+ANPdata:
+- creation_date = "2021/8/10"
+- maturity = "production"
+# - query_schema_validation = false
+- updated_date = "2021/8/10"
+# - min_stack_version = "7.12.0"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Identifies remote execution of Windows services over remote procedure call (RPC). This could be indicative of lateral
+    movement, but will be noisy if commonly done by administrators."
+
+# - false_positives:  ["""PowerShell remoting is a dual-use protocol that can be used for benign or malicious activity. It's important to
+    # baseline your environment to determine the amount of noise to expect from this tool."""]
+
+# - interval: "60m"
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+# - note: """## Triage and analysis Investigating Large DNS ResponsesDetection alerts from this rule indicate an attempt was made to exploit CVE-2020-1350 (SigRed) through the use of large DNS responses on a Windows DNS server. Here are some possible avenues of investigation - Investigate any corresponding Intrusion Detection Signatures (IDS) alerts that can validate this detection alert.- Examine the `dns.question_type` network fieldset with a protocol analyzer, such as Zeek, Packetbeat, or Suricata, for `SIG` or `RRSIG` data.- Validate the patch level and OS of the targeted DNS server to validate the observed activity was not large-scale Internet vulnerability scanning.- Validate that the source of the network activity was not from an authorized vulnerability scan or compromise assessment."""
+
+# - references: ["https://blog.netspi.com/how-to-access-rdp-over-a-reverse-ssh-tunnel/"]
+
+# - max_signals: 33
+
+- risk_score: 47
+
+- rule_id: "aa9a274d-6b53-424d-ac5e-cb8ca4251650"
+
+- severity: "medium"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Lateral Movement"]
+
+- type: "eql"
+
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1021",
+        name : "Remote Services",
+        reference : "https://attack.mitre.org/techniques/T1021/"
+      ],
+      tactic: [
+        id : "TA0008",
+        name : "Lateral Movement",
+        reference : "https://attack.mitre.org/tactics/TA0008/"]
+    ]
+  ]
+  
+name: "Remotely Started Services via RPC"
+index: anp-log-agentbase-winclient
+type: any
+eql:
+  "query": "sequence with maxspan=1s   [network where process.name : \"services.exe\" and      network.direction == \"incoming\" and network.transport == \"tcp\" and       source.port >= 49152 and destination.port >= 49152 and source.ip != \"127.0.0.1\" and source.ip != \"::1\"   ] by host.id, process.entity_id   [process where event.type in (\"start\", \"process_started\") and process.parent.name : \"services.exe\" and        not (process.name : \"svchost.exe\" and process.args : \"tiledatamodelsvc\") and        not (process.name : \"msiexec.exe\" and process.args : \"/V\")       /* uncomment if psexec is noisy in your environment */    /* and not process.name : \"PSEXESVC.exe\" */    ] by host.id, process.parent.entity_id"
+
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

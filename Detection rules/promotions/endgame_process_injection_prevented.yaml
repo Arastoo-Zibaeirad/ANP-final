@@ -1,0 +1,42 @@
+ANPdata:
+- creation_date = "2021/08/07"
+- maturity = "production"
+- updated_date = "2021/08/07"
+
+ANPrule:
+- author = ["Elastic"]
+
+- description = """Elastic Endgame prevented Process Injection. Click the Elastic Endgame icon in the event.module column or the link
+    in the rule.reference column for additional information."""
+
+- interval = "10m"
+
+- language = "kuery"
+
+- license = "Elastic License v2"
+
+- risk_score = 47
+
+- rule_id =  "990838aa-a953-4f3e-b3cb-6ddf7584de9e"
+
+- severity = "medium"
+
+- tags = ["Elastic", "Elastic Endgame"]
+
+- type = "query"
+
+name: "Process Injection - Prevented - Elastic Endgame"
+
+index: ["endgame-*"]
+
+type: any
+
+kql:
+  "query": {"query_string": {"query": "event.kind:alert and event.module:endgame and endgame.metadata.type:prevention and (event.action:kernel_shellcode_event or endgame.event_subtype_full:kernel_shellcode_event)"}}
+
+
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

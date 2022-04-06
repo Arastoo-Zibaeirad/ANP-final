@@ -1,0 +1,66 @@
+ANPdata:
+- creation_date = "2021/8/10"
+- maturity = "production"
+# - query_schema_validation = false
+- updated_date = "2021/8/10"
+# - min_stack_version = "7.12.0"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Identifies the creation of a hidden local user account by appending the dollar sign to the account name. This is
+    sometimes done by attackers to increase access to a system and avoid appearing in the results of accounts listing using
+    the net users command."
+
+# - false_positives:  ["""PowerShell remoting is a dual-use protocol that can be used for benign or malicious activity. It's important to
+    # baseline your environment to determine the amount of noise to expect from this tool."""]
+
+# - interval: "60m"
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+# - note: """## Triage and analysis Decode the base64 encoded tasks actions registry value to investigate the task configured action."""
+
+- references: ["https://blog.menasec.net/2019/02/threat-hunting-6-hiding-in-plain-sights_8.html", "https://github.com/CyberMonitor/APT_CyberCriminal_Campagin_Collections/tree/master/2020/2020.12.15.Lazarus_Campaign"]
+
+# - max_signals: 33
+
+- risk_score: 73
+
+- rule_id: "2edc8076-291e-41e9-81e4-e3fcbc97ae5e"
+
+- severity: "high"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Persistence"]
+
+- type: "eql"
+
+
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1136",
+        name : "Create Account",
+        reference : "https://attack.mitre.org/techniques/T1136/"
+      ],
+      tactic: [
+        id : "TA0003",
+        name : "Persistence",
+        reference : "https://attack.mitre.org/tactics/TA0003/"]
+    ]
+  ]
+
+name: "Creation of a Hidden Local User Account"
+index: .ds-winlogbeat-8.0.0-2022.02.19-000001
+type: any
+eql:
+  "query": "registry where registry.path : \"HKLM\\\\SAM\\\\SAM\\\\Domains\\\\Account\\\\Users\\\\Names\\\\*$\\\\\""
+
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

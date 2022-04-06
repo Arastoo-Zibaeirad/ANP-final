@@ -1,0 +1,70 @@
+ANPdata:
+- creation_date = "2021/8/10"
+- maturity = "production"
+# - query_schema_validation = false
+- updated_date = "2021/8/10"
+# - min_stack_version = "7.12.0"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Identifies the use of net.exe to mount a WebDav or hidden remote share. This may indicate lateral movement or
+    preparation for data exfiltration."
+
+# - false_positives:  ["""WinRM is a dual-use protocol that can be used for benign or malicious activity. It's important to baseline your
+    # environment to determine the amount of noise to expect from this tool."""]
+
+# - interval: "60m"
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+# - note: """## Triage and analysis Investigating Large DNS ResponsesDetection alerts from this rule indicate an attempt was made to exploit CVE-2020-1350 (SigRed) through the use of large DNS responses on a Windows DNS server. Here are some possible avenues of investigation - Investigate any corresponding Intrusion Detection Signatures (IDS) alerts that can validate this detection alert.- Examine the `dns.question_type` network fieldset with a protocol analyzer, such as Zeek, Packetbeat, or Suricata, for `SIG` or `RRSIG` data.- Validate the patch level and OS of the targeted DNS server to validate the observed activity was not large-scale Internet vulnerability scanning.- Validate that the source of the network activity was not from an authorized vulnerability scan or compromise assessment."""
+
+# - references: ["https://blog.menasec.net/2020/08/new-trick-to-detect-lateral-movement.html"]
+
+# - max_signals: 33
+
+- risk_score: 21
+
+- rule_id: "c4210e1c-64f2-4f48-b67e-b5a8ffe3aa14"
+
+- severity: "medium"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Lateral Movement"]
+
+- type: "eql"
+
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1021",
+        name : "Remote Services",
+        reference : "https://attack.mitre.org/techniques/T1021/",
+        subtechnique: [
+          [id : "T1021.002",        
+          name : "SMB/Windows Admin Shares",        
+          reference : "https://attack.mitre.org/techniques/T1021/002/"]
+        ]
+      ],
+      tactic: [
+        id : "TA0008",
+        name : "Lateral Movement",
+        reference : "https://attack.mitre.org/tactics/TA0008/"]
+    ]
+  ]
+
+name: "Mounting Hidden or WebDav Remote Shares"
+index: anp-log-agentbase-winclient
+
+type: any
+eql:
+  "query": "process where event.type in (\"start\", \"process_started\") and    ((process.name : \"net.exe\" or process.pe.original_file_name == \"net.exe\") or ((process.name : \"net1.exe\" or process.pe.original_file_name == \"net1.exe\") and    not process.parent.name : \"net.exe\")) and    process.args : \"use\" and    /* including hidden and webdav based online shares such as onedrive  */    process.args : (\"\\\\*\\\\*$*\", \"\\\\*@SSL\\\\*\", \"http*\") and    /* excluding shares deletion operation */    not process.args : \"/d*\""
+
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

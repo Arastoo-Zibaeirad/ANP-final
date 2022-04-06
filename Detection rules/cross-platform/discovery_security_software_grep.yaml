@@ -1,0 +1,61 @@
+ANPdata:
+- creation_date = "2021/07/27"
+- maturity = "production"
+- updated_date = "2021/07/27"
+
+ANPrule:
+- author = ["Elastic"]
+
+- description = """
+    Identifies the use of the grep command to discover known third-party macOS and Linux security tools, such as Antivirus
+    or Host Firewall details."""
+
+- false_positives = ["Endpoint Security installers, updaters and post installation verification scripts."]
+
+- language = "eql"
+
+- license = "Elastic License v2"
+
+- max_signals = 33
+
+- risk_score = 47
+
+- rule_id = "870aecc0-cea4-4110-af3f-e02e9b373655"
+
+- severity = "medium"
+
+- tags = ["Elastic", "Host", "macOS", "Linux", "Threat Detection", "Discovery"]
+
+- type = "eql"
+
+name: "Security Software Discovery via Grep"
+
+index: ["logs-endpoint.events.*", "auditbeat-*"]
+
+type: any
+
+eql:
+  "query": "process where event.type == \"start\" and\nprocess.name : \"grep\" and user.id != \"0\" and\n not process.parent.executable : \"/Library/Application Support/*\" and\n   process.args :         (\"Little Snitch*\",          \"Avast*\",          \"Avira*\",          \"ESET*\",          \"BlockBlock*\",          \"360Sec*\",          \"LuLu*\",          \"KnockKnock*\",          \"kav\",          \"KIS\",          \"RTProtectionDaemon*\",          \"Malware*\",          \"VShieldScanner*\",          \"WebProtection*\",          \"webinspectord*\",          \"McAfee*\",          \"isecespd*\",          \"macmnsvc*\",          \"masvc*\",          \"kesl*\",          \"avscan*\",          \"guard*\",          \"rtvscand*\",          \"symcfgd*\",          \"scmdaemon*\",          \"symantec*\",          \"sophos*\",          \"osquery*\",         \"elastic-endpoint*\"          ) and\n   not (process.args : \"Avast\" and process.args : \"Passwords\")"
+
+threat:
+  - 01:
+    - threat_rule: 
+      - framework = "MITRE ATT&CK"
+    - technique: 
+      - id = "T1518"
+      - name = "Software Discovery"
+      - reference = "https://attack.mitre.org/techniques/T1518/"
+      - subtechnique:
+        - id = "T1518.001"
+        - name = "Security Software Discovery"
+        - reference = "https://attack.mitre.org/techniques/T1518/001/"
+    - tactic:
+      - id = "TA0007"
+      - name = "Discovery"
+      - reference = "https://attack.mitre.org/tactics/TA0007/"
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

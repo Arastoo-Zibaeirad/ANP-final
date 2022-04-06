@@ -1,0 +1,111 @@
+ANPdata:
+- creation_date = "2021/8/11"
+- maturity = "production"
+# - query_schema_validation = false
+- updated_date = "2021/8/11"
+# - min_stack_version = "7.12.0"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Windows contains accessibility features that may be launched with a key combination before a user has logged in. An
+    adversary can modify the way these programs are launched to get a command prompt or backdoor without logging in to the
+    system."
+
+# - false_positives:  ["""A legitimate VBA for Outlook is usually configured interactively via OUTLOOK.EXE."""]
+
+# - interval: "60m"
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+# - note: """## Triage and analysis Decode the base64 encoded Tasks Actions registry value to investigate the task's configured action."""
+
+- references: ["https://www.elastic.co/blog/practical-security-engineering-stateful-detection"]
+
+# - max_signals: 33
+
+- risk_score: 73
+
+- rule_id: "7405ddf1-6c8e-41ce-818f-48bea6bcaed8"
+
+- severity: "high"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Persistence"]
+
+- type: "eql"
+
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1546",
+        name : "Event Triggered Execution",
+        reference : "https://attack.mitre.org/techniques/T1546/",
+        subtechnique: [
+          [id : "T1546.008",        
+          name : "Accessibility Features",        
+          reference : "https://attack.mitre.org/techniques/T1546/008/"]
+        ]
+      ],
+      tactic: [
+        id : "TA0003",
+        name : "Persistence",
+        reference : "https://attack.mitre.org/tactics/TA0003/"]
+    ],
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1546",
+        name : "Event Triggered Execution",
+        reference : "https://attack.mitre.org/techniques/T1546/",
+        subtechnique: [
+          [id : "T1546.008",        
+          name : "Accessibility Features",        
+          reference : "https://attack.mitre.org/techniques/T1546/008/"]
+        ]
+      ],
+      tactic: [
+        id : "TA0004",
+        name : "Privilege Escalation",
+        reference : "https://attack.mitre.org/tactics/TA0004/"]
+    ]
+  ]
+name: "Potential Modification of Accessibility Binaries"
+index: .ds-winlogbeat-8.0.0-2022.02.19-000001
+type: any
+eql:
+  "query": "process where event.type in (\"start\", \"process_started\", \"info\") and
+    process.parent.name : (\"Utilman.exe\", \"winlogon.exe\") and user.name == \"SYSTEM\" and
+    process.args :
+        (
+        \"C:\\\\Windows\\\\System32\\\\osk.exe\",
+        \"C:\\\\Windows\\\\System32\\\\Magnify.exe\",
+        \"C:\\\\Windows\\\\System32\\\\Narrator.exe\",
+        \"C:\\\\Windows\\\\System32\\\\Sethc.exe\",
+        \"utilman.exe\",
+        \"ATBroker.exe\",
+        \"DisplaySwitch.exe\",
+        \"sethc.exe\"
+        )
+    and not process.pe.original_file_name in
+        (
+        \"osk.exe\",
+        \"sethc.exe\",
+        \"utilman2.exe\",
+        \"DisplaySwitch.exe\",
+        \"ATBroker.exe\",
+        \"ScreenMagnifier.exe\",
+        \"SR.exe\",
+        \"Narrator.exe\",
+        \"magnify.exe\",
+        \"MAGNIFY.EXE\"
+        )
+    /* uncomment once in winlogbeat to avoid bypass with rogue process with matching pe original file name */
+    /* and process.code_signature.subject_name == \"Microsoft Windows\" and process.code_signature.status == \"trusted\" */"
+
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

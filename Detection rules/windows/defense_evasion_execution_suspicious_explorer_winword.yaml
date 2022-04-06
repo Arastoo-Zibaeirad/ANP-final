@@ -1,0 +1,59 @@
+ANPdata:
+- creation_date = "2021/8/3"
+- maturity = "production"
+- updated_date = "2021/8/3"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Identifies an instance of a Windows trusted program that is known to be vulnerable to DLL Search Order Hijacking starting after being renamed or from a non-standard path. This is uncommon behavior and may indicate an attempt to evade defenses via side loading a malicious DLL within the memory space of one of those processes."
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+- risk_score: 73
+
+- rule_id: "1160dcdb-0a0a-4a79-91d8-9b84616edebd"
+
+- severity: "high"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Defense Evasion"]
+
+- type: "eql"
+
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1036",
+        name : "Masquerading",
+        reference : "https://attack.mitre.org/techniques/T1036/"
+
+      ],
+
+      tactic: [
+        id : "TA0005",
+        name : "Defense Evasion",
+        reference : "https://attack.mitre.org/tactics/TA0005/"]]]
+
+name: "Potential DLL SideLoading via Trusted Microsoft Programs"
+index: anp-log-agentbase-winclient
+type: any
+eql:
+  "query": "process where event.type == \"start\" and
+    process.pe.original_file_name in (\"WinWord.exe\", \"EXPLORER.EXE\", \"w3wp.exe\", \"DISM.EXE\") and
+    not (process.name : (\"winword.exe\", \"explorer.exe\", \"w3wp.exe\", \"Dism.exe\") or
+          process.executable : (\"?:\\\\Windows\\\\explorer.exe\",
+                                \"?:\\\\Program Files\\\\Microsoft Office\\\\root\\\\Office*\\\\WINWORD.EXE\",
+                                \"?:\\\\Program Files?(x86)\\\\Microsoft Office\\\\root\\\\Office*\\\\WINWORD.EXE\",
+                                \"?:\\\\Windows\\\\System32\\\\Dism.exe\",
+                                \"?:\\\\Windows\\\\SysWOW64\\\\Dism.exe\",
+                                \"?:\\\\Windows\\\\System32\\\\inetsrv\\\\w3wp.exe\")
+          )"
+
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

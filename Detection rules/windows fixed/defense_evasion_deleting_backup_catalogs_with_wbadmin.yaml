@@ -1,0 +1,58 @@
+ANPdata:
+- creation_date = "2021/8/3"
+- maturity = "production"
+- updated_date = "2021/8/3"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Identifies use of the wbadmin.exe to delete the backup catalog. Ransomware and other malware may do this to prevent system recovery."
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+- risk_score: 21
+
+- rule_id: "581add16-df76-42bb-af8e-c979bfb39a59"
+
+- severity: "low"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Defense Evasion"]
+
+- type: "eql"
+
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1070",
+        name : "Indicator Removal on Host",
+        reference : "https://attack.mitre.org/techniques/T1070/",
+        subtechnique: [
+          [id : "T1070.004",        
+          name : "File Deletion",        
+          reference : "https://attack.mitre.org/techniques/T1070/004/"],
+
+        ]
+      ],
+      tactic: [
+        id : "TA0005",
+        name : "Defense Evasion",
+        reference : "https://attack.mitre.org/tactics/TA0005/"]
+    ]
+  ]
+
+name: "Deleting Backup Catalogs with Wbadmin"
+index: .ds-winlogbeat-8.0.0-2022.02.19-000001
+type: any
+eql:
+  "query": "process where event.type in (\"start\", \"process_started\") and
+    (process.name : \"wbadmin.exe\" or process.pe.original_file_name == \"WBADMIN.EXE\") and
+    process.args : \"catalog\" and process.args : \"delete\""
+
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

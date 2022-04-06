@@ -1,0 +1,65 @@
+ANPdata:
+- creation_date = "2021/8/8"
+- maturity = "production"
+# - query_schema_validation = false
+- updated_date = "2021/8/8"
+# - min_stack_version = "7.12.0"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Identifies process execution from suspicious default Windows directories. This is sometimes done by adversaries to hide
+    malware in trusted paths."
+
+# - false_positives: ["Microsoft Windows installers leveraging RunDLL32 for installation."]
+
+# - interval: "30m"
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+# - note: """## Triage and analysis
+#     AdFind.exe` is a legitimate domain query tool. Rule alerts should be investigated to identify if the user has a role that would explain using this tool and that it is being run from an expected directory and endpoint. Leverage the exception workflow in the Kibana Security App or Elasticsearch API to tune this rule to your environment."""
+
+# - references: ["https://www.iana.org/assignments/iana-ipv4-special-registry/iana-ipv4-special-registry.xhtml"]
+
+# - max_signals: 33
+
+- risk_score: 47
+
+- rule_id: "ebfe1448-7fac-4d59-acea-181bd89b1f7f"
+
+- severity: "medium"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Execution"]
+
+- type: "eql"
+name: "Process Execution from an Unusual Directory"
+index: .ds-winlogbeat-8.0.0-2022.02.19-000001
+
+type: any
+eql:
+  "query": "process where event.type in (\"start\", \"process_started\", \"info\") and
+    /* add suspicious execution paths here */
+    process.executable : (\"C:\\\\PerfLogs\\\\*.exe\",\"C:\\\\Users\\\\Public\\\\*.exe\",\"C:\\\\Users\\\\Default\\\\*.exe\",\"C:\\\\Windows\\\\Tasks\\\\*.exe\",\"C:\\\\Intel\\\\*.exe\",\"C:\\\\AMD\\\\Temp\\\\*.exe\",\"C:\\\\Windows\\\\AppReadiness\\\\*.exe\",
+    \"C:\\\\Windows\\\\ServiceState\\\\*.exe\",\"C:\\\\Windows\\\\security\\\\*.exe\",\"C:\\\\Windows\\\\IdentityCRL\\\\*.exe\",\"C:\\\\Windows\\\\Branding\\\\*.exe\",\"C:\\\\Windows\\\\csc\\\\*.exe\",
+    \"C:\\\\Windows\\\\DigitalLocker\\\\*.exe\",\"C:\\\\Windows\\\\en-US\\\\*.exe\",\"C:\\\\Windows\\\\wlansvc\\\\*.exe\",\"C:\\\\Windows\\\\Prefetch\\\\*.exe\",\"C:\\\\Windows\\\\Fonts\\\\*.exe\",
+    \"C:\\\\Windows\\\\diagnostics\\\\*.exe\",\"C:\\\\Windows\\\\TAPI\\\\*.exe\",\"C:\\\\Windows\\\\INF\\\\*.exe\",\"C:\\\\Windows\\\\System32\\\\Speech\\\\*.exe\",\"C:\\\\windows\\\\tracing\\\\*.exe\",
+    \"c:\\\\windows\\\\IME\\\\*.exe\",\"c:\\\\Windows\\\\Performance\\\\*.exe\",\"c:\\\\windows\\\\intel\\\\*.exe\",\"c:\\\\windows\\\\ms\\\\*.exe\",\"C:\\\\Windows\\\\dot3svc\\\\*.exe\",\"C:\\\\Windows\\\\ServiceProfiles\\\\*.exe\",
+    \"C:\\\\Windows\\\\panther\\\\*.exe\",\"C:\\\\Windows\\\\RemotePackages\\\\*.exe\",\"C:\\\\Windows\\\\OCR\\\\*.exe\",\"C:\\\\Windows\\\\appcompat\\\\*.exe\",\"C:\\\\Windows\\\\apppatch\\\\*.exe\",\"C:\\\\Windows\\\\addins\\\\*.exe\",
+    \"C:\\\\Windows\\\\Setup\\\\*.exe\",\"C:\\\\Windows\\\\Help\\\\*.exe\",\"C:\\\\Windows\\\\SKB\\\\*.exe\",\"C:\\\\Windows\\\\Vss\\\\*.exe\",\"C:\\\\Windows\\\\Web\\\\*.exe\",\"C:\\\\Windows\\\\servicing\\\\*.exe\",\"C:\\\\Windows\\\\CbsTemp\\\\*.exe\",
+    \"C:\\\\Windows\\\\Logs\\\\*.exe\",\"C:\\\\Windows\\\\WaaS\\\\*.exe\",\"C:\\\\Windows\\\\twain_32\\\\*.exe\",\"C:\\\\Windows\\\\ShellExperiences\\\\*.exe\",\"C:\\\\Windows\\\\ShellComponents\\\\*.exe\",\"C:\\\\Windows\\\\PLA\\\\*.exe\",
+    \"C:\\\\Windows\\\\Migration\\\\*.exe\",\"C:\\\\Windows\\\\debug\\\\*.exe\",\"C:\\\\Windows\\\\Cursors\\\\*.exe\",\"C:\\\\Windows\\\\Containers\\\\*.exe\",\"C:\\\\Windows\\\\Boot\\\\*.exe\",\"C:\\\\Windows\\\\bcastdvr\\\\*.exe\",
+    \"C:\\\\Windows\\\\assembly\\\\*.exe\",\"C:\\\\Windows\\\\TextInput\\\\*.exe\",\"C:\\\\Windows\\\\security\\\\*.exe\",\"C:\\\\Windows\\\\schemas\\\\*.exe\",\"C:\\\\Windows\\\\SchCache\\\\*.exe\",\"C:\\\\Windows\\\\Resources\\\\*.exe\",
+    \"C:\\\\Windows\\\\rescache\\\\*.exe\",\"C:\\\\Windows\\\\Provisioning\\\\*.exe\",\"C:\\\\Windows\\\\PrintDialog\\\\*.exe\",\"C:\\\\Windows\\\\PolicyDefinitions\\\\*.exe\",\"C:\\\\Windows\\\\media\\\\*.exe\",
+    \"C:\\\\Windows\\\\Globalization\\\\*.exe\",\"C:\\\\Windows\\\\L2Schemas\\\\*.exe\",\"C:\\\\Windows\\\\LiveKernelReports\\\\*.exe\",\"C:\\\\Windows\\\\ModemLogs\\\\*.exe\",\"C:\\\\Windows\\\\ImmersiveControlPanel\\\\*.exe\") and
+    not process.name : (\"SpeechUXWiz.exe\",\"SystemSettings.exe\",\"TrustedInstaller.exe\",\"PrintDialog.exe\",\"MpSigStub.exe\",\"LMS.exe\",\"mpam-*.exe\")
+    /* uncomment once in winlogbeat */
+    /* and not (process.code_signature.subject_name == \"Microsoft Corporation\" and process.code_signature.trusted == true) */"
+
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

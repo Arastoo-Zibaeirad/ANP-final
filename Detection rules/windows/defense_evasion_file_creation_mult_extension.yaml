@@ -1,0 +1,55 @@
+ANPdata:
+- creation_date = "2021/8/3"
+- maturity = "production"
+- updated_date = "2021/8/3"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Masquerading can allow an adversary to evade defenses and better blend in with the environment. One way it occurs is when the name or location of a file is manipulated as a means of tricking a user into executing what they think is a benign file type but is actually executable code."
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+- risk_score: 47
+
+- rule_id: "8b2b3a62-a598-4293-bc14-3d5fa22bb98f"
+
+- severity: "medium"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Defense Evasion"]
+
+- type: "eql"
+
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1036",
+        name : "Masquerading",
+        reference : "https://attack.mitre.org/techniques/T1036/",
+        subtechnique: [
+          [id : "T1036.004",        
+          name : "Masquerade Task or Service",        
+          reference : "https://attack.mitre.org/techniques/T1036/004/"]
+        ]
+      ],
+
+      tactic: [
+        id : "TA0005",
+        name : "Defense Evasion",
+        reference : "https://attack.mitre.org/tactics/TA0005/"]]]
+
+name: "Executable File Creation with Multiple Extensions"
+index: anp-log-agentbase-winclient
+type: any
+eql:
+  "query": "file where event.type == \"creation\" and file.extension : \"exe\" and
+    file.name regex~ \"\"\".*\\\\.(vbs|vbe|bat|js|cmd|wsh|ps1|pdf|docx?|xlsx?|pptx?|txt|rtf|gif|jpg|png|bmp|hta|txt|img|iso)\\\\.exe\"\"\""
+
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

@@ -1,0 +1,49 @@
+ANPdata:
+- creation_date = "2021/8/7"
+- maturity = "production"
+- updated_date = "2021/8/7"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "The Filter Manager Control Program (fltMC.exe) binary may be abused by adversaries to unload a filter driver and evade
+    defenses."
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+- risk_score: 47
+
+- rule_id: "06dceabf-adca-48af-ac79-ffdf4c3b1e9a"
+
+- severity: "medium"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Defense Evasion"]
+
+- type: "eql"
+
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1222",
+        name : "File and Directory Permissions Modification",
+        reference : "https://attack.mitre.org/techniques/T1222/"],
+      tactic: [
+        id : "TA0005",
+        name : "Defense Evasion",
+        reference : "https://attack.mitre.org/tactics/TA0005/"]]]
+
+name: "Potential Evasion via Filter Manager"
+index: .ds-winlogbeat-8.0.0-2022.02.19-000001
+type: any
+eql:
+  "query": "process where event.type in (\"start\", \"process_started\") and 
+    process.name : \"fltMC.exe\" and process.args : \"unload\""
+
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

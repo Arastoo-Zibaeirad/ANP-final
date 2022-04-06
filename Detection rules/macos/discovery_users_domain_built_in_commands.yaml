@@ -1,0 +1,54 @@
+ANPdata:
+- creation_date = "2021/08/08"
+- maturity = "production"
+- updated_date = "2021/08/08"
+
+ANPrule:
+- author = ["Elastic"]
+
+- description = """Identifies the execution of macOS built-in commands related to account or group enumeration."""
+
+- language = "eql"
+
+- license = "Elastic License v2"
+
+- risk_score = 21
+
+- rule_id = "6e9b351e-a531-4bdc-b73e-7034d6eed7ff"
+
+- severity = "low"
+
+- tags = ["Elastic", "Host", "macOS", "Threat Detection", "Discovery"]
+
+- type = "eql"
+
+name: "Enumeration of Users or Groups via Built-in Commands"
+
+index: ["auditbeat-*", "logs-endpoint.events.*"]
+
+type: any
+
+eql: 
+  "query": "process where event.type in (\"start\", \"process_started\") and\n  not process.parent.executable : (\"/Applications/NoMAD.app/Contents/MacOS/NoMAD\",     \"/Applications/ZoomPresence.app/Contents/MacOS/ZoomPresence\",     \"/Applications/Sourcetree.app/Contents/MacOS/Sourcetree\",     \"/Library/Application Support/JAMF/Jamf.app/Contents/MacOS/JamfDaemon.app/Contents/MacOS/JamfDaemon\",     \"/usr/local/jamf/bin/jamf\"    ) and \n  process.name : (\"ldapsearch\", \"dsmemberutil\") or\n  (process.name : \"dscl\" and \n     process.args : (\"read\", \"-read\", \"list\", \"-list\", \"ls\", \"search\", \"-search\") and \n     process.args : (\"/Active Directory/*\", \"/Users*\", \"/Groups*\"))"
+
+threat:
+  - 01:
+    - threat_rule: 
+      - framework = "MITRE ATT&CK"
+    - technique01:
+      - id = "T1069"
+      - name = "Permission Groups Discovery"
+      - reference = "https://attack.mitre.org/techniques/T1069/"
+    - technique02:
+      - id = "T1087"
+      - name = "Account Discovery"
+      - reference = "https://attack.mitre.org/techniques/T1087/"
+    - tactic:
+      - id = "TA0007"
+      - name =  "Discovery"
+      - reference = "https://attack.mitre.org/tactics/TA0007/"
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

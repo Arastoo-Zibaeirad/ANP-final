@@ -1,0 +1,63 @@
+ANPdata:
+- creation_date = "2021/8/10"
+- maturity = "production"
+# - query_schema_validation = false
+- updated_date = "2021/8/10"
+# - min_stack_version = "7.12.0"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "A job can be used to schedule programs or scripts to be executed at a specified date and time. Adversaries may abuse task scheduling functionality to facilitate initial or recurring execution of malicious code."
+
+- false_positives:  ["Legitimate scheduled jobs may be created during installation of new software."]
+
+# - interval: "60m"
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+# - note: """## Triage and analysis Verify file creation events in the new Windows Startup folder location."""
+
+# - references: ["https://oddvar.moe/2018/04/10/persistence-using-globalflags-in-image-file-execution-options-hidden-from-autoruns-exe/"]
+
+# - max_signals: 33
+
+- risk_score: 47
+
+- rule_id: "1327384f-00f3-44d5-9a8c-2373ba071e92"
+
+- severity: "medium"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Persistence"]
+
+- type: "eql"
+
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1053",
+        name : "Scheduled Task/Job",
+        reference : "https://attack.mitre.org/techniques/T1053/"
+      ],
+      tactic: [
+        id : "TA0003",
+        name : "Persistence",
+        reference : "https://attack.mitre.org/tactics/TA0003/"]
+    ]
+  ]
+
+name: "Persistence via Scheduled Job Creation"
+index: .ds-winlogbeat-8.0.0-2022.02.19-000001
+type: any
+eql:
+  "query": "file where event.type != \"deletion\" and
+    file.path : \"?:\\\\Windows\\\\Tasks\\\\*\" and file.extension : \"job\""
+
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

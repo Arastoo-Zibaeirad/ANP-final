@@ -1,0 +1,91 @@
+ANPdata:
+- creation_date = "2021/8/11"
+- maturity = "production"
+# - query_schema_validation = false
+- updated_date = "2021/8/11"
+# - min_stack_version = "7.12.0"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Identifies execution of a suspicious program via scheduled tasks by looking at process lineage and command line usage."
+
+- false_positives:  ["Legitimate scheduled tasks running third party software."]
+
+# - interval: "60m"
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+# - note: """## Triage and analysis Decode the base64 encoded Tasks Actions registry value to investigate the task's configured action."""
+
+# - references: ["https://medium.com/threatpunter/detecting-adversary-tradecraft-with-image-load-event-logging-and-eql-8de93338c16", "https://www.clearskysec.com/wp-content/uploads/2020/10/Operation-Quicksand.pdf"]
+
+# - max_signals: 33
+
+- risk_score: 47
+
+- rule_id: "5d1d6907-0747-4d5d-9b24-e4a18853dc0a"
+
+- severity: "medium"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Persistence"]
+
+- type: "eql"
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1053",
+        name : "Scheduled Task/Job",
+        reference : "https://attack.mitre.org/techniques/T1053/"
+      ],
+      tactic: [
+        id : "TA0003",
+        name : "Persistence",
+        reference : "https://attack.mitre.org/tactics/TA0003/"]
+    ]
+  ]
+name: "Suspicious Execution via Scheduled Task"
+index: .ds-winlogbeat-8.0.0-2022.02.19-000001
+type: any
+eql:
+  "query": "process where event.type == \"start\" and
+    /* Schedule service cmdline on Win10+ */
+    process.parent.name : \"svchost.exe\" and process.parent.args : \"Schedule\" and
+    /* add suspicious programs here */
+    process.pe.original_file_name in
+                                (
+                                  \"cscript.exe\",
+                                  \"wscript.exe\",
+                                  \"PowerShell.EXE\",
+                                  \"Cmd.Exe\",
+                                  \"MSHTA.EXE\",
+                                  \"RUNDLL32.EXE\",
+                                  \"REGSVR32.EXE\",
+                                  \"MSBuild.exe\",
+                                  \"InstallUtil.exe\",
+                                  \"RegAsm.exe\",
+                                  \"RegSvcs.exe\",
+                                  \"msxsl.exe\",
+                                  \"CONTROL.EXE\",
+                                  \"EXPLORER.EXE\",
+                                  \"Microsoft.Workflow.Compiler.exe\",
+                                  \"msiexec.exe\"
+                                  ) and
+    /* add suspicious paths here */
+    process.args : (
+       \"C:\\\\Users\\\\*\",
+       \"C:\\\\ProgramData\\\\*\", 
+       \"C:\\\\Windows\\\\Temp\\\\*\", 
+       \"C:\\\\Windows\\\\Tasks\\\\*\", 
+       \"C:\\\\PerfLogs\\\\*\", 
+       \"C:\\\\Intel\\\\*\", 
+       \"C:\\\\Windows\\\\Debug\\\\*\", 
+       \"C:\\\\HP\\\\*\")"
+
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

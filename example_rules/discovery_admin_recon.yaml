@@ -1,0 +1,66 @@
+ANPdata:
+- creation_date = "2021/8/7"
+- maturity = "production"
+- updated_date = "2021/8/7"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Identifies instances of lower privilege accounts enumerating Administrator accounts or groups using built-in Windows
+    tools."
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+- risk_score: 21
+
+- rule_id: "871ea072-1b71-4def-b016-6278b505138d"
+
+- severity: "low"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Discovery"]
+
+- type: "eql"
+
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1069",
+        name : "Permission Groups Discovery",
+        reference : "https://attack.mitre.org/techniques/T1069/"]],
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1087",
+        name : "Account Discovery",
+        reference : "https://attack.mitre.org/techniques/T1087/"]
+        
+      ],
+      tactic: [
+        id : "TA0007",
+        name : "Discovery",
+        reference : "https://attack.mitre.org/tactics/TA0007/"]]
+
+name: "Enumeration of Administrator Accounts"
+index: .ds-winlogbeat-8.0.0-2022.02.19-000001
+
+type: any
+eql:
+  "query": "process where event.type in (\"start\", \"process_started\") and
+    (((process.name : \"net.exe\" or process.pe.original_file_name == \"net.exe\") or
+      ((process.name : \"net1.exe\" or process.pe.original_file_name == \"net1.exe\") and
+          not process.parent.name : \"net.exe\")) and
+    process.args : (\"group\", \"user\", \"localgroup\") and
+    process.args : (\"admin\", \"Domain Admins\", \"Remote Desktop Users\", \"Enterprise Admins\", \"Organization Management\") and
+    not process.args : \"/add\")
+    or
+    ((process.name : \"wmic.exe\" or process.pe.original_file_name == \"wmic.exe\") and
+    process.args : (\"group\", \"useraccount\"))"
+
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

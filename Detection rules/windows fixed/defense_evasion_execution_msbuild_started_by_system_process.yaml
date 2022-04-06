@@ -1,0 +1,59 @@
+ANPdata:
+- creation_date = "2021/8/3"
+- maturity = "production"
+- updated_date = "2021/8/3"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "An instance of MSBuild, the Microsoft Build Engine, was started by Explorer or the WMI (Windows Management Instrumentation) subsystem. This behavior is unusual and is sometimes used by malicious payloads."
+
+- false_positives: ["The Build Engine is commonly used by Windows developers but use by non-engineers is unusual."]
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+- risk_score: 47
+
+- rule_id: "9d110cb3-5f4b-4c9a-b9f5-53f0a1707ae3"
+
+- severity: "medium"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Defense Evasion"]
+
+- type: "eql"
+
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1127",
+        name : "Trusted Developer Utilities Proxy Execution",
+        reference : "https://attack.mitre.org/techniques/T1127/"],
+      tactic: [
+        id : "TA0005",
+        name : "Defense Evasion",
+        reference : "https://attack.mitre.org/tactics/TA0005/"]],
+
+    [framework : "MITRE ATT&CK",
+      tactic: [
+        id : "TA0002",
+        name : "Execution",
+        reference : "https://attack.mitre.org/tactics/TA0002/"]
+    ]
+  ]
+
+name: "Microsoft Build Engine Started by a System Process"
+index: .ds-winlogbeat-8.0.0-2022.02.19-000001
+type: any
+eql:
+  "query": "process where event.type in (\"start\", \"process_started\") and
+    process.name : \"MSBuild.exe\" and
+    process.parent.name : (\"explorer.exe\", \"wmiprvse.exe\")"
+
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

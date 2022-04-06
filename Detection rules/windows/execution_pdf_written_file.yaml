@@ -1,0 +1,89 @@
+ANPdata:
+- creation_date = "2021/8/8"
+- maturity = "production"
+# - query_schema_validation = false
+- updated_date = "2021/8/8"
+# - min_stack_version = "7.12.0"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Identifies a suspicious file that was written by a PDF reader application and subsequently executed. These processes are
+    often launched via exploitation of PDF applications."
+
+# - false_positives: ["Microsoft Windows installers leveraging RunDLL32 for installation."]
+
+- interval: "60m"
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+# - note: """## Triage and analysis
+#     This is related to the `Process Execution from an Unusual Directory rule`."""
+
+# - references: ["https://www.iana.org/assignments/iana-ipv4-special-registry/iana-ipv4-special-registry.xhtml"]
+
+# - max_signals: 33
+
+- risk_score: 21
+
+- rule_id: "1defdd62-cd8d-426e-a246-81a37751bb2b"
+
+- severity: "high"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Execution"]
+
+- type: "eql"
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      tactic: [
+        id : "TA0002",
+        name : "Execution",
+        reference : "https://attack.mitre.org/tactics/TA0002/"]],
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1566",
+        name : "Phishing",
+        reference : "https://attack.mitre.org/techniques/T1566/",
+        subtechnique: [
+          [id : "T1566.001",        
+          name : "Spearphishing Attachment",        
+          reference : "https://attack.mitre.org/techniques/T1566/001/"],
+          [id : "T1566.002",        
+          name : "Spearphishing Link",        
+          reference : "https://attack.mitre.org/techniques/T1566/002/"]
+        ]
+      ],
+      tactic: [
+        id : "TA0001",
+        name : "Initial Access",
+        reference : "https://attack.mitre.org/tactics/TA0001/"]
+    ]
+  ]
+name: "Execution of File Written or Modified by PDF Reader"
+index: anp-log-agentbase-winclient
+
+type: any
+eql:
+  "query": "sequence with maxspan=2h
+    [file where event.type != \"deletion\" and file.extension : \"exe\" and
+      (process.name : \"AcroRd32.exe\" or
+        process.name : \"rdrcef.exe\" or
+        process.name : \"FoxitPhantomPDF.exe\" or
+        process.name : \"FoxitReader.exe\") and
+      not (file.name : \"FoxitPhantomPDF.exe\" or
+            file.name : \"FoxitPhantomPDFUpdater.exe\" or
+            file.name : \"FoxitReader.exe\" or
+            file.name : \"FoxitReaderUpdater.exe\" or
+            file.name : \"AcroRd32.exe\" or
+            file.name : \"rdrcef.exe\")
+    ] by host.id, file.path
+    [process where event.type in (\"start\", \"process_started\")] by host.id, process.executable"
+
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

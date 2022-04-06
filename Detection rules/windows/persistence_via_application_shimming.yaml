@@ -1,0 +1,87 @@
+ANPdata:
+- creation_date = "2021/8/11"
+- maturity = "production"
+# - query_schema_validation = false
+- updated_date = "2021/8/11"
+# - min_stack_version = "7.12.0"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "The Application Shim was created to allow for backward compatibility of software as the operating system codebase
+    changes over time. This Windows functionality has been abused by attackers to stealthily gain persistence and arbitrary
+    code execution in legitimate Windows processes."
+
+# - false_positives:  ["""Legitimate local user creations may be done by a system or network administrator. Verify whether this is known
+    # behavior in your environment. Local user creations from unfamiliar users or hosts should be investigated. If known
+    # behavior is causing false positives, it can be exempted from the rule."""]
+
+# - interval: "60m"
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+# - note: """## Triage and analysis Decode the base64 encoded Tasks Actions registry value to investigate the task's configured action."""
+
+# - references: ["https://docs.microsoft.com/en-us/windows-server/identity/ad-ds/plan/security-best-practices/appendix-b--privileged-accounts-and-groups-in-active-directory"]
+
+# - max_signals: 33
+
+- risk_score: 21
+
+- rule_id: "fd4a992d-6130-4802-9ff8-829b89ae801f"
+
+- severity: "low"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Persistence"]
+
+- type: "eql"
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1546",
+        name : "Event Triggered Execution",
+        reference : "https://attack.mitre.org/techniques/T1546/",
+        subtechnique: [
+          [id : "T1546.011",        
+          name : "Application Shimming",        
+          reference : "https://attack.mitre.org/techniques/T1546/011/"]
+        ]
+      ],
+      tactic: [
+        id : "TA0003",
+        name : "Persistence",
+        reference : "https://attack.mitre.org/tactics/TA0003/"]
+    ],
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1546",
+        name : "Event Triggered Execution",
+        reference : "https://attack.mitre.org/techniques/T1546/",
+        subtechnique: [
+          [id : "T1546.011",        
+          name : "Application Shimming",        
+          reference : "https://attack.mitre.org/techniques/T1546/011/"]
+        ]
+      ],
+      tactic: [
+        id : "TA0004",
+        name : "Privilege Escalation",
+        reference : "https://attack.mitre.org/tactics/TA0004/"]
+    ]
+  ]
+
+
+name: "Potential Application Shimming via Sdbinst"
+index: anp-log-agentbase-winclient
+type: any
+eql:
+  "query": "process where event.type in (\"start\", \"process_started\") and process.name : \"sdbinst.exe\""
+
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

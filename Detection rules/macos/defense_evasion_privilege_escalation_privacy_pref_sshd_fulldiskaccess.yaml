@@ -1,0 +1,65 @@
+ANPdata:
+- creation_date = "2021/08/08"
+- maturity = "production"
+- updated_date = "2021/08/08"
+
+ANPrule:
+- author = ["Elastic"]
+
+- description = """Identifies use of the Secure Copy Protocol (SCP) to copy files locally by abusing the auto addition of the Secure Shell
+    Daemon (sshd) to the authorized application list for Full Disk Access. This may indicate attempts to bypass macOS
+    privacy controls to access sensitive files."""
+
+- language = "eql"
+
+- license = "Elastic License v2"
+
+- references = [ "https://blog.trendmicro.com/trendlabs-security-intelligence/xcsset-mac-malware-infects-xcode-projects-performs-uxss-attack-on-safari-other-browsers-leverages-zero-day-exploits/"]
+
+- risk_score = 73
+
+- rule_id = "c02c8b9f-5e1d-463c-a1b0-04edcdfe1a3d"
+
+- severity = "high"
+
+- tags =  ["Elastic", "Host", "macOS", "Threat Detection", "Privilege Escalation", "Defense Evasion"]
+
+- type = "eql"
+
+name: "Potential Privacy Control Bypass via Localhost Secure Copy"
+
+index: ["auditbeat-*", "logs-endpoint.events.*"]
+
+type: any
+
+eql: 
+  "query": "process where event.type in (\"start\", \"process_started\") and \n process.name:\"scp\" and\n process.args:\"StrictHostKeyChecking=no\" and \n process.command_line:(\"scp *localhost:/*\", \"scp *127.0.0.1:/*\") and\n not process.args:\"vagrant@*127.0.0.1*\""
+
+threat:
+  - 01:
+    - threat_rule: 
+      - framework = "MITRE ATT&CK"
+    - technique:
+      - id = "T1548"
+      - name = "Abuse Elevation Control Mechanism"
+      - reference = "https://attack.mitre.org/techniques/T1548/"
+    - tactic:
+      - id = "TA0005"
+      - name =  "Defense Evasion"
+      - reference = "https://attack.mitre.org/tactics/TA0005/"
+  - 02:
+    - threat_rule: 
+      - framework = "MITRE ATT&CK"
+    - technique:
+      - id = "T1548"
+      - name = "Abuse Elevation Control Mechanism"
+      - reference = "https://attack.mitre.org/techniques/T1548/"
+    - tactic:
+      - id = "TA0004"
+      - name =  "Privilege Escalation"
+      - reference = "https://attack.mitre.org/tactics/TA0004/"
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

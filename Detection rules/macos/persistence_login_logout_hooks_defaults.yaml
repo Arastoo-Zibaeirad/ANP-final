@@ -1,0 +1,54 @@
+ANPdata:
+- creation_date = "2021/08/08"
+- maturity = "production"
+- updated_date = "2021/08/08"
+
+ANPrule:
+- author = ["Elastic"]
+
+- description = """Identifies use of the Defaults command to install a login or logoff hook in MacOS. An adversary may abuse this
+    capability to establish persistence in an environment by inserting code to be executed at login or logout."""
+
+- language = "eql"
+
+- license = "Elastic License v2"
+
+- references = ["https://www.virusbulletin.com/uploads/pdf/conference_slides/2014/Wardle-VB2014.pdf",    "https://www.manpagez.com/man/1/defaults/"]
+
+- risk_score = 47
+
+- rule_id = "5d0265bf-dea9-41a9-92ad-48a8dcd05080"
+
+- severity = "medium"
+
+- tags = ["Elastic", "Host", "macOS", "Threat Detection", "Persistence"]
+
+- type = "eql"
+
+name: "Persistence via Login or Logout Hook"
+
+index: ["auditbeat-*", "logs-endpoint.events.*"]
+
+type: any
+
+eql: 
+  "query": "process where event.type == \"start\" and\n process.name == \"defaults\" and process.args == \"write\" and process.args in (\"LoginHook\", \"LogoutHook\") and\n not process.args :       (         \"Support/JAMF/ManagementFrameworkScripts/logouthook.sh\",         \"Support/JAMF/ManagementFrameworkScripts/loginhook.sh\",         \"/Library/Application Support/JAMF/ManagementFrameworkScripts/logouthook.sh\",         \"/Library/Application Support/JAMF/ManagementFrameworkScripts/loginhook.sh\"       )"
+
+threat:
+  - 01:
+    - threat_rule: 
+      - framework = "MITRE ATT&CK"
+    - technique:
+      - id = "T1037"
+      - name = "Boot or Logon Initialization Scripts"
+      - reference = "https://attack.mitre.org/techniques/T1037/"
+    - tactic:
+      - id = "TA0003"
+      - name = "Persistence"
+      - reference = "https://attack.mitre.org/tactics/TA0003/"
+
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

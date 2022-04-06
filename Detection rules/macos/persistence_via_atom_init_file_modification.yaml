@@ -1,0 +1,44 @@
+ANPdata:
+- creation_date = "2021/08/09"
+- maturity = "production"
+- updated_date = "2021/08/09"
+
+ANPrule:
+- author = ["Elastic"]
+
+- description = """Identifies modifications to the Atom desktop text editor Init File. Adversaries may add malicious JavaScript code to the
+    init.coffee file that will be executed upon the Atom application opening."""
+
+- false_positives = ["Trusted applications for managing calendars and reminders."] 
+
+- language = "kuery"
+
+- license = "Elastic License v2"
+
+- references = [ "https://github.com/D00MFist/PersistentJXA/blob/master/AtomPersist.js",    "https://flight-manual.atom.io/hacking-atom/sections/the-init-file/"]
+
+- risk_score = 21
+
+- rule_id = "b4449455-f986-4b5a-82ed-e36b129331f7"
+
+- severity = "low"
+
+- tags = ["Elastic", "Host", "macOS", "Threat Detection", "Persistence"]
+
+- type = "query"
+
+name: "Potential Persistence via Atom Init Script Modification"
+
+index: ["auditbeat-*", "logs-endpoint.events.*"]
+
+type: any
+
+kql: 
+  "query": {"query_string": {"query": "event.category:\"file\" and not event.type:\"deletion\" and\n file.path:/Users/*/.atom/init.coffee and not process.name:(Atom or xpcproxy) and not user.name:root"}}
+
+
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

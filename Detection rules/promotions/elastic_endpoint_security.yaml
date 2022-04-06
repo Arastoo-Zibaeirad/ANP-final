@@ -1,0 +1,77 @@
+ANPdata:
+- creation_date = "2021/08/07"
+- maturity = "production"
+- updated_date = "2021/08/07"
+
+ANPrule:
+- author = ["Elastic"]
+
+- description = """Generates a detection alert each time an Elastic Endpoint Security alert is received. Enabling this rule allows you to
+    immediately begin investigating your Endpoint alerts."""
+
+- enabled = true
+
+- language = "kuery"
+
+- license = "Elastic License v2"
+
+- max_signals = 10000
+
+- risk_score = 47
+
+- rule_id =  "9a1a2dae-0b5f-4c3d-8305-a268d404c306"
+
+- rule_name_override = "message"
+
+- severity = "medium"
+
+- tags = ["Elastic", "Endpoint Security"]
+
+- type = "query"
+
+name: "Endpoint Security"
+
+index: ["logs-endpoint.alerts-*"]
+
+type: any
+
+kql:
+  "query": {"query_string": {"query": "event.kind:alert and event.module:(endpoint and not endgame)"}}
+
+exceptions_list:
+- id = "endpoint_list"
+- list_id = "endpoint_list"
+- namespace_type = "agnostic"
+- type = "endpoint"
+risk_score_mapping:
+- field = "event.risk_score"
+- operator = "equals"
+- value = ""
+severity_mapping:
+- 01:
+  - field = "event.severity"
+  - operator = "equals"
+  - value = "21"
+  - severity = "low"
+- 02:
+  - field = "event.severity"
+  - operator = "equals"
+  - value = "47"
+  - severity = "medium"
+- 03:
+  - field = "event.severity"
+  - operator = "equals"
+  - value = "73"
+  - severity = "high"
+- 04:
+  - field = "event.severity"
+  - operator = "equals"
+  - value = "99"
+  - severity = "critical"
+
+
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

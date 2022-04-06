@@ -1,0 +1,58 @@
+ANPdata:
+- creation_date = "2021/8/3"
+- maturity = "production"
+- updated_date = "2021/8/3"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Identifies attempts to disable EventLog via the logman Windows utility, PowerShell, or auditpol. This is often done by  attackers in an attempt to evade detection on a system."
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+- references: ["https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/logman"]
+
+- risk_score: 21
+
+- rule_id: "4de76544-f0e5-486a-8f84-eae0b6063cdc"
+
+- severity: "low"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Defense Evasion"]
+
+- type: "eql"
+
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1070",
+        name : "Indicator Removal on Host",
+        reference : "https://attack.mitre.org/techniques/T1070/",
+      ],
+      tactic: [
+        id : "TA0005",
+        name : "Defense Evasion",
+        reference : "https://attack.mitre.org/tactics/TA0005/"]
+    ]
+  ]
+  
+name: "Disable Windows Event and Security Logs Using Built-in Tools"
+index: .ds-winlogbeat-8.0.0-2022.02.19-000001
+type: any
+eql:
+  "query": "process where event.type in (\"start\", \"process_started\") and
+    ((process.name:\"logman.exe\" or process.pe.original_file_name == \"Logman.exe\") and
+        process.args : \"EventLog-*\" and process.args : (\"stop\", \"delete\")) or
+    ((process.name : (\"pwsh.exe\", \"powershell.exe\", \"powershell_ise.exe\") or process.pe.original_file_name in
+        (\"pwsh.exe\", \"powershell.exe\", \"powershell_ise.exe\")) and
+    process.args : \"Set-Service\" and process.args: \"EventLog\" and process.args : \"Disabled\")  or
+    ((process.name:\"auditpol.exe\" or process.pe.original_file_name == \"AUDITPOL.EXE\") and process.args : \"/success:disable\")"
+
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

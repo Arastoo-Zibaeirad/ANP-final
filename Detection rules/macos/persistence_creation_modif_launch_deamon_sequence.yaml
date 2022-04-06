@@ -1,0 +1,59 @@
+ANPdata:
+- creation_date = "2021/08/08"
+- maturity = "production"
+- updated_date = "2021/08/08"
+
+ANPrule:
+- author = ["Elastic"]
+
+- description = """Adversaries may create or modify launch daemons to repeatedly execute malicious payloads as part of persistence."""
+
+- false_positives = ["Trusted applications persisting via LaunchDaemons"]
+
+- language = "eql"
+
+- license = "Elastic License v2"
+
+- references = ["https://developer.apple.com/library/archive/documentation/MacOSX/Conceptual/BPSystemStartup/Chapters/CreatingLaunchdJobs.html"]
+
+- risk_score = 21
+
+- rule_id = "9d19ece6-c20e-481a-90c5-ccca596537de"
+
+- severity = "low"
+
+- tags = ["Elastic", "Host", "macOS", "Threat Detection", "Persistence"]
+
+- type = "eql"
+
+name: "LaunchDaemon Creation or Modification and Immediate Loading"
+
+index: ["auditbeat-*", "logs-endpoint.events.*"]
+
+type: any
+
+eql: 
+  "query": "sequence by host.id with maxspan=1m [file where event.type != \"deletion\" and file.path in (\"/System/Library/LaunchDaemons/*\", \" /Library/LaunchDaemons/*\")] [process where event.type in (\"start\", \"process_started\") and process.name == \"launchctl\" and process.args == \"load\"]"
+
+threat:
+  - 01:
+    - threat_rule: 
+      - framework = "MITRE ATT&CK"
+    - technique:
+      - id = "T1543"
+      - name = "Create or Modify System Process"
+      - reference = "https://attack.mitre.org/techniques/T1543/"
+      - subtechnique: 
+        - id = "T1547.011"
+        - name = "Plist Modification"
+        - reference = "https://attack.mitre.org/techniques/T1547/011/"
+    - tactic:
+      - id = "TA0003"
+      - name = "Persistence"
+      - reference = "https://attack.mitre.org/tactics/TA0003/"
+
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

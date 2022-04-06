@@ -1,0 +1,71 @@
+ANPdata:
+- creation_date = "2021/8/12"
+- maturity = "production"
+# - query_schema_validation = false
+- updated_date = "2021/8/12"
+# - min_stack_version = "7.12.0"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Identifies User Account Control (UAC) bypass via eventvwr.exe. Attackers bypass UAC to stealthily execute code with
+    elevated permissions."
+
+# - false_positives:  ["""Uninstall or manual deletion of a legitimate printing driver files. Verify the printer file metadata such as
+    # manufacturer and signature information."""]
+
+# - interval: "60m"
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+# - note: """## Threat intel Refer to CVEs, CVE-2020-1048 and CVE-2020-1337 for further information on the vulnerability and exploit. Verify that the relevant system is patched."""
+
+# - references: ["https://github.com/hfiref0x/UACME"]
+
+# - max_signals: 33
+
+- risk_score: 73
+
+- rule_id: "31b4c719-f2b4-41f6-a9bd-fce93c2eaf62"
+
+- severity: "high"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Privilege Escalation"]
+
+- type: "eql"
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1548",
+        name : "Abuse Elevation Control Mechanism",
+        reference : "https://attack.mitre.org/techniques/T1548/",
+        subtechnique: [
+          [id : "T1548.002",        
+          name : "Bypass User Account Control",        
+          reference : "https://attack.mitre.org/techniques/T1548/002/"]
+        ]
+      ],
+      tactic: [
+        id : "TA0004",
+        name : "Privilege Escalation",
+        reference : "https://attack.mitre.org/tactics/TA0004/"]]
+  ]
+name: "Bypass UAC via Event Viewer"
+index: .ds-winlogbeat-8.0.0-2022.02.19-000001
+type: any
+eql:
+  "query": "process where event.type in (\"start\", \"process_started\") and
+      process.parent.name : \"eventvwr.exe\" and
+      not process.executable : 
+                (\"?:\\\\Windows\\\\SysWOW64\\\\mmc.exe\", 
+                \"?:\\\\Windows\\\\System32\\\\mmc.exe\",
+                \"?:\\\\Windows\\\\SysWOW64\\\\WerFault.exe\",
+                \"?:\\\\Windows\\\\System32\\\\WerFault.exe\")"
+
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

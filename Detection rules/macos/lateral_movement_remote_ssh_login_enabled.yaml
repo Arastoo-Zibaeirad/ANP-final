@@ -1,0 +1,53 @@
+ANPdata:
+- creation_date = "2021/08/08"
+- maturity = "production"
+- updated_date = "2021/08/08"
+
+ANPrule:
+- author = ["Elastic"]
+
+- description = """Detects use of the systemsetup command to enable remote SSH Login."""
+
+- language = "kuery"
+
+- license = "Elastic License v2"
+
+- references = ["https://documents.trendmicro.com/assets/pdf/XCSSET_Technical_Brief.pdf",    "https://ss64.com/osx/systemsetup.html",    "https://support.apple.com/guide/remote-desktop/about-systemsetup-apd95406b8d/mac"]
+
+- risk_score = 47
+
+- rule_id = "5ae4e6f8-d1bf-40fa-96ba-e29645e1e4dc"
+
+- severity = "medium"
+
+- tags = ["Elastic", "Host", "macOS", "Threat Detection", "Lateral Movement"]
+
+- type = "query"
+
+name: "Remote SSH Login Enabled via systemsetup Command"
+
+index: ["auditbeat-*", "logs-endpoint.events.*"]
+
+type: any
+
+kql: 
+  "query": {"query_string": {"query": "event.category:process and event.type:(start or process_started) and\n process.name:systemsetup and\n process.args:(\"-setremotelogin\" and on)"}}
+
+threat:
+  - 01:
+    - threat_rule: 
+      - framework = "MITRE ATT&CK"
+    - technique:
+      - id = "T1021"
+      - name = "Remote Services"
+      - reference = "https://attack.mitre.org/techniques/T1021/"
+    - tactic:
+      - id = "TA0008"
+      - name = "Lateral Movement"
+      - reference = "https://attack.mitre.org/tactics/TA0008/"
+
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

@@ -1,0 +1,79 @@
+ANPdata:
+- creation_date = "2021/8/8"
+- maturity = "production"
+# - query_schema_validation = false
+- updated_date = "2021/8/8"
+# - min_stack_version = "7.12.0"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Identifies use of the SysInternals tool PsExec.exe making a network connection. This could be an indication of lateral
+    movement."
+
+- false_positives: ["PsExec is a dual-use tool that can be used for benign or malicious activity. It's important to baseline your
+    environment to determine the amount of noise to expect from this tool."]
+
+# - interval: "60m"
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+# - note: """## Triage and analysis
+#     This is related to the `Process Execution from an Unusual Directory rule`."""
+
+# - references: ["https://www.iana.org/assignments/iana-ipv4-special-registry/iana-ipv4-special-registry.xhtml"]
+
+# - max_signals: 33
+
+- risk_score: 21
+
+- rule_id: "55d551c6-333b-4665-ab7e-5d14a59715ce"
+
+- severity: "low"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Execution"]
+
+- type: "eql"
+
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+    technique: [
+        id : "T1569",
+        name : "System Services",
+        reference : "https://attack.mitre.org/techniques/T1569/",
+        subtechnique: [
+          [id : "T1569.002",        
+          name : "Service Execution",        
+          reference : "https://attack.mitre.org/techniques/T1569/002/"]
+        ]
+    ],
+      tactic: [
+        id : "TA0002",
+        name : "Execution",
+        reference : "https://attack.mitre.org/tactics/TA0002/"]],
+
+    [framework : "MITRE ATT&CK",
+      tactic: [
+        id : "TA0008",
+        name : "Lateral Movement",
+        reference : "https://attack.mitre.org/tactics/TA0008/"]
+    ]
+  ]
+
+name: "PsExec Network Connection"
+index: .ds-winlogbeat-8.0.0-2022.02.19-000001
+
+type: any
+eql:
+  "query": "sequence by process.entity_id
+    [process where process.name : \"PsExec.exe\" and event.type == \"start\"]
+    [network where process.name : \"PsExec.exe\"]"
+
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

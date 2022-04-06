@@ -74,14 +74,20 @@ class OrderInline(admin.StackedInline):
 class RuleAdmin(admin.ModelAdmin):
     # class Meta:
     #     model = Rule
-    list_display = ['id', 'name', 'index_name', 'sequence','create_time', 'modified_time', 'total', 'total_method']
+    list_display = ['id', 'name', 'index_name','create_time', 'modified_time', 'total',]
     search_fields = ['name', 'index_name']
     list_display_links = ['name']
     inlines = [
         QueryInline,
         ConfigInline,
-        
         ]
+    
+    # def save_model(self, request, obj, form, change):
+    #     obj.total = obj.total_method
+        
+        # super().save_model(request, obj, form, change)
+        # obj.total_method()
+        
     # def total_method(self,instance):
     #     a = instance.total_method()
     #     return instance.total
@@ -98,6 +104,11 @@ class QueryAdmin(admin.ModelAdmin):
     # list_editable = ['sequence']
     search_field = ['event_category', 'condition']
     
+    # def save_model(self, request, obj, form, change):
+    #     # obj.rule.total = obj.rule.total_method
+
+    #     super().save_model(request, obj, form, change)
+    #     obj.rule.total = obj.rule.total_method
 
 class StrategyAdmin(admin.ModelAdmin):
 

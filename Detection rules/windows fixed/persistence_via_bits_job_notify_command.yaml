@@ -1,0 +1,69 @@
+ANPdata:
+- creation_date = "2021/8/11"
+- maturity = "production"
+# - query_schema_validation = false
+- updated_date = "2021/8/11"
+# - min_stack_version = "7.12.0"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "An adversary can use the Background Intelligent Transfer Service (BITS) SetNotifyCmdLine method to execute a program
+    that runs after a job finishes transferring data or after a job enters a specified state in order to persist on a system."
+
+# - false_positives:  ["""Legitimate local user creations may be done by a system or network administrator. Verify whether this is known
+    # behavior in your environment. Local user creations from unfamiliar users or hosts should be investigated. If known
+    # behavior is causing false positives, it can be exempted from the rule."""]
+
+# - interval: "60m"
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+# - note: """## Triage and analysis Decode the base64 encoded Tasks Actions registry value to investigate the task's configured action."""
+
+- references: ["https://pentestlab.blog/2019/10/30/persistence-bits-jobs/", "https://docs.microsoft.com/en-us/windows/win32/api/bits1_5/nf-bits1_5-ibackgroundcopyjob2-setnotifycmdline", "https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/bitsadmin-setnotifycmdline", "https://www.elastic.co/blog/hunting-for-persistence-using-elastic-security-part-2"]
+
+# - max_signals: 33
+
+- risk_score: 47
+
+- rule_id: "c3b915e0-22f3-4bf7-991d-b643513c722f"
+
+- severity: "medium"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Persistence"]
+
+- type: "eql"
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1197",
+        name : "BITS Jobs",
+        reference : "https://attack.mitre.org/techniques/T1197/"
+      ],
+      tactic: [
+        id : "TA0003",
+        name : "Persistence",
+        reference : "https://attack.mitre.org/tactics/TA0003/"]
+    ]
+  ]
+name: "Persistence via BITS Job Notify Cmdline"
+index: .ds-winlogbeat-8.0.0-2022.02.19-000001
+type: any
+eql:
+  "query": "process where event.type == \"start\" and
+    process.parent.name : \"svchost.exe\" and process.parent.args : \"BITS\" and
+    not process.executable :
+                (\"?:\\\\Windows\\\\System32\\\\WerFaultSecure.exe\",
+                \"?:\\\\Windows\\\\System32\\\\WerFault.exe\",
+                \"?:\\\\Windows\\\\System32\\\\wermgr.exe\",
+                \"?:\\\\WINDOWS\\\\system32\\\\directxdatabaseupdater.exe\")"
+
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

@@ -1,0 +1,64 @@
+ANPdata:
+- creation_date = "2021/8/3"
+- maturity = "production"
+- updated_date = "2021/8/3"
+
+ANPrule:
+- author: ["Elastic"]
+
+- description: "An instance of MSBuild, the Microsoft Build Engine, created a thread in another process. This technique is sometimes used to evade detection or elevate privileges."
+
+- false_positives: ["The Build Engine is commonly used by Windows developers but use by non-engineers is unusual."]
+
+- language: "kuery"
+
+- license: "Elastic License v2"
+
+- risk_score: 21
+
+- rule_id: "9d110cb3-5f4b-4c9a-b9f5-53f0a1707ae9"
+
+- severity: "low"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Defense Evasion"]
+
+- type: "query"
+
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1055",
+        name : "Process Injection",
+        reference : "https://attack.mitre.org/techniques/T1055/"],
+      tactic: [
+        id : "TA0005",
+        name : "Defense Evasion",
+        reference : "https://attack.mitre.org/tactics/TA0005/"]],
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1055",
+        name : "Process Injection",
+        reference : "https://attack.mitre.org/techniques/T1055/"],
+      tactic: [
+        id : "TA0004",
+        name : "Privilege Escalation",
+        reference : "https://attack.mitre.org/tactics/TA0004/"]
+    ]
+  ]
+
+name: Process Injection by the Microsoft Build Engine
+index: .ds-winlogbeat-8.0.0-2022.02.19-000001
+type: frequency
+num_events: 1
+timeframe:
+  hours: 1
+kql:
+  query: {"query_string": {"query": "process.name:MSBuild.exe and event.action:\"CreateRemoteThread detected (rule: CreateRemoteThread)\"" }  }
+
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

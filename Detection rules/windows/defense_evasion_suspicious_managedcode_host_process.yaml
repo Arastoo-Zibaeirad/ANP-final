@@ -1,0 +1,64 @@
+ANPdata:
+- creation_date = "2021/8/7"
+- maturity = "production"
+- updated_date = "2021/8/7"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Identifies a suspicious managed code hosting process which could indicate code injection or other form of suspicious
+    code execution."
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+- note: "## Triage and analysis Verify process details such as command line and hash to confirm this activity legitimacy."
+
+- references: ["https://blog.menasec.net/2019/07/interesting-difr-traces-of-net-clr.html"]
+
+- risk_score: 73
+
+- rule_id: "acf738b5-b5b2-4acc-bad9-1e18ee234f40"
+
+- severity: "high"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Defense Evasion"]
+
+- type: "eql"
+
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1055",
+        name : "Process Injection",
+        reference : "https://attack.mitre.org/techniques/T1055/"
+      ],
+      tactic: [
+        id : "TA0005",
+        name : "Defense Evasion",
+        reference : "https://attack.mitre.org/tactics/TA0005/"]]]
+
+name: "Suspicious Managed Code Hosting Process"
+index: anp-log-agentbase-winclient
+type: any
+eql:
+  "query": "sequence by process.entity_id with maxspan=5m
+    [process where event.type == \"start\" and 
+      process.name : (\"wscript.exe\", \"cscript.exe\", \"mshta.exe\", \"wmic.exe\", \"regsvr32.exe\", \"svchost.exe\", \"dllhost.exe\", \"cmstp.exe\")]
+    [file where event.type != \"deletion\" and
+      file.name : (\"wscript.exe.log\",
+                  \"cscript.exe\",
+                  \"mshta.exe.log\",
+                  \"wmic.exe.log\",
+                  \"svchost.exe.log\",
+                  \"dllhost.exe.log\",
+                  \"cmstp.exe.log\",
+                  \"regsvr32.exe.log\")]"
+
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

@@ -1,0 +1,84 @@
+ANPdata:
+- creation_date = "2021/7/31"
+- maturity = "production"
+- updated_date = "2021/7/31"
+# - min_stack_version = "7.12.0"
+ANPrule:
+- author = ["Elastic"]
+
+- description = """
+    Hping ran on a Linux host. Hping is a FOSS command-line packet analyzer and has the ability to construct network packets for a wide variety of network security testing applications, including scanning and firewall auditing."""
+
+- false_positives = ["Normal use of hping is uncommon apart from security testing and research. Use by non-security engineers is very uncommon."]
+
+- language = "kuery"
+
+- license = "Elastic License v2"
+
+- references = ["https://en.wikipedia.org/wiki/Hping"]
+
+- risk_score = 73
+
+# - max_signals = 33
+
+- rule_id = "90169566-2260-4824-b8e4-8615c3b4ed52"
+
+- severity = "high"
+
+- tags = ["Elastic", "Host", "Linux", "Threat Detection"]
+
+- type = "query"
+name: "Hping Process Activity"
+index: ["auditbeat-*", "logs-endpoint.events.*"]
+type: any
+kql:
+  "query": {"query_string": {"query": "event.category:process and event.type:(start or process_started) and process.name:(hping or hping2 or hping3)" }  }
+# threat:
+#   - 01:
+#     - threat_rule: 
+#       - framework = "MITRE ATT&CK"
+#     - technique: 
+#       - id = "T1021"
+#       - name = "Remote Services"
+#       - reference = "https://attack.mitre.org/techniques/T1021/"
+#       # - subtechnique:
+#       #   - id = "T1562.001"
+#       #   - name = "Disable or Modify Tools"
+#       #   - reference = "https://attack.mitre.org/techniques/T1562/001/"
+#     - tactic:
+#       - id = "TA0008"
+#       - name = "Lateral Movement"
+#       - reference = "https://attack.mitre.org/tactics/TA0008/"
+  # - 02: 
+  #   - threat_rule:
+  #     - framework = "MITRE ATT&CK"
+  #   - technique:
+  #     - id = "T1078"
+  #     - name = "Valid Accounts"
+  #     - reference = "https://attack.mitre.org/techniques/T1078/"
+  #     # - subtechnique:
+  #     #   - id = "T1547.006"
+  #     #   - name ="Kernel Modules and Extensions"
+  #     #   - reference = "https://attack.mitre.org/techniques/T1547/006/"
+  #   - tactic:
+  #     - id = "TA0003"
+  #     - name = "Persistence"
+  #     - reference = "https://attack.mitre.org/tactics/TA0003/"
+
+
+#filter:
+#- term:
+#    event.code: 751
+    
+
+# eql:
+  # "query": " process where process.name == \"services.exe\""
+  
+# kql:
+#   "query": {"query_string": {"query": "event.code : 967" }  }
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

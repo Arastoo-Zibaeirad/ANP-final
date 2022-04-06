@@ -1,0 +1,68 @@
+ANPdata:
+- creation_date = "2021/8/10"
+- maturity = "production"
+# - query_schema_validation = false
+- updated_date = "2021/8/10"
+# - min_stack_version = "7.12.0"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Identifies the use of Distributed Component Object Model (DCOM) to execute commands from a remote host, which are
+    launched via the HTA Application COM Object. This behavior may indicate an attacker abusing a DCOM application to move
+    laterally while attempting to evading detection."
+
+# - false_positives:  ["""Werfault.exe will legitimately spawn when dns.exe crashes, but the DNS service is very stable and so this is a low
+    # occurring event. Denial of Service (DoS) attempts by intentionally crashing the service will also cause werfault.exe
+    # to spawn."""]
+
+# - interval: "60m"
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+# - note: """## Triage and analysis Investigating Unusual File Write Detection alerts from this rule indicate potential unusual/abnormal file writes from the DNS Server service process (`dns.exe`) after exploitation from CVE-2020-1350 (SigRed) has occurred. Here are some possible avenues of investigation - Post-exploitation, adversaries may write additional files or payloads to the system as additional discovery/exploitation/persistence mechanisms.- Any suspicious or abnormal files written from `dns.exe` should be reviewed and investigated with care.""""""
+
+- references: ["https://codewhitesec.blogspot.com/2018/07/lethalhta.html"]
+
+# - max_signals: 33
+
+- risk_score: 73
+
+- rule_id: "622ecb68-fa81-4601-90b5-f8cd661e4520"
+
+- severity: "high"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Lateral Movement"]
+
+- type: "eql"
+
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1021",
+        name : "Remote Services",
+        reference : "https://attack.mitre.org/techniques/T1021/"
+      ],
+      tactic: [
+        id : "TA0008",
+        name : "Lateral Movement",
+        reference : "https://attack.mitre.org/tactics/TA0008/"]
+    ]
+  ]
+
+
+name: "Incoming DCOM Lateral Movement via MSHTA"
+index: .ds-winlogbeat-8.0.0-2022.02.19-000001
+
+type: any
+eql:
+  "query": "sequence with maxspan=1m    [process where event.type in (\"start\", \"process_started\") and      process.name : \"mshta.exe\" and process.args : \"-Embedding\"    ] by host.id, process.entity_id    [network where event.type == \"start\" and process.name : \"mshta.exe\" and       network.direction == \"incoming\" and network.transport == \"tcp\" and      source.port > 49151 and destination.port > 49151 and source.ip != \"127.0.0.1\" and source.ip != \"::1\"    ] by host.id, process.entity_id"
+
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

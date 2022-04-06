@@ -1,0 +1,75 @@
+ANPdata:
+- creation_date = "2021/8/11"
+- maturity = "production"
+# - query_schema_validation = false
+- updated_date = "2021/8/11"
+# - min_stack_version = "7.12.0"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Identifies a user being added to a privileged group in Active Directory. Privileged accounts and groups in Active
+    Directory are those to which powerful rights, privileges, and permissions are granted that allow them to perform nearly
+    any action in Active Directory and on domain-joined systems."
+
+# - false_positives:  ["""Legitimate scheduled tasks running third party software."""]
+
+# - interval: "60m"
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+# - note: """## Triage and analysis Decode the base64 encoded Tasks Actions registry value to investigate the task's configured action."""
+
+- references: ["https://docs.microsoft.com/en-us/windows-server/identity/ad-ds/plan/security-best-practices/appendix-b--privileged-accounts-and-groups-in-active-directory"]
+
+# - max_signals: 33
+
+- risk_score: 47
+
+- rule_id: "5cd8e1f7-0050-4afc-b2df-904e40b2f5ae"
+
+- severity: "medium"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Persistence"]
+
+- type: "eql"
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1136",
+        name : "Create Account",
+        reference : "https://attack.mitre.org/techniques/T1136/",
+        subtechnique: [
+          [id : "T1136.001",        
+          name : "Create Account",        
+          reference : "https://attack.mitre.org/techniques/T1136/001/"]
+        ]
+      ],
+      tactic: [
+        id : "TA0003",
+        name : "Persistence",
+        reference : "https://attack.mitre.org/tactics/TA0003/"]
+    ]
+  ]
+name: "User Added to Privileged Group in Active Directory"
+index: anp-log-agentbase-winclient
+type: any
+eql:
+  "query": "iam where event.action == \"added-member-to-group\" and
+    group.name : (\"Admin*\",
+                  \"Local Administrators\",
+                  \"Domain Admins\",
+                  \"Enterprise Admins\",
+                  \"Backup Admins\",
+                  \"Schema Admins\",
+                  \"DnsAdmins\",
+                  \"Exchange Organization Administrators\")"
+
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

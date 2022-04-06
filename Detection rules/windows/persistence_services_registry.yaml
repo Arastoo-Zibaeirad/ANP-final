@@ -1,0 +1,82 @@
+ANPdata:
+- creation_date = "2021/8/11"
+- maturity = "production"
+# - query_schema_validation = false
+- updated_date = "2021/8/11"
+# - min_stack_version = "7.12.0"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Identifies processes modifying the services registry key directly, instead of through the expected Windows APIs. This
+    could be an indication of an adversary attempting to stealthily persist through abnormal service creation or
+    modification of an existing service."
+
+# - false_positives:  ["""A legitimate VBA for Outlook is usually configured interactively via OUTLOOK.EXE."""]
+
+# - interval: "60m"
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+# - note: """## Triage and analysis Decode the base64 encoded Tasks Actions registry value to investigate the task's configured action."""
+
+# - references: ["https://www.microsoftpressstore.com/articles/article.aspx?p=2762082&seqNum=2"]
+
+# - max_signals: 33
+
+- risk_score: 21
+
+- rule_id: "403ef0d3-8259-40c9-a5b6-d48354712e49"
+
+- severity: "low"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Persistence"]
+
+- type: "eql"
+
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1543",
+        name : "Create or Modify System Process",
+        reference : "https://attack.mitre.org/techniques/T1543/",
+        subtechnique: [
+          [id : "T1543.003",        
+          name : "Windows Service",        
+          reference : "https://attack.mitre.org/techniques/T1543/003/"]
+        ]
+      ],
+      tactic: [
+        id : "TA0003",
+        name : "Persistence",
+        reference : "https://attack.mitre.org/tactics/TA0003/"]
+    ]
+  ]
+
+name: "Unusual Persistence via Services Registry"
+index: anp-log-agentbase-winclient
+type: any
+eql:
+  "query": "registry where registry.path : (\"HKLM\\\\SYSTEM\\\\ControlSet*\\\\Services\\\\*\\\\ServiceDLL\", \"HKLM\\\\SYSTEM\\\\ControlSet*\\\\Services\\\\*\\\\ImagePath\") and
+    not registry.data.strings : (\"?:\\\\windows\\\\system32\\\\Drivers\\\\*.sys\",
+                                \"\\\\SystemRoot\\\\System32\\\\drivers\\\\*.sys\",
+                                \"\\\\??\\\\?:\\\\Windows\\\\system32\\\\Drivers\\\\*.SYS\",
+                                \"system32\\\\DRIVERS\\\\USBSTOR\") and
+    not (process.name : \"procexp??.exe\" and registry.data.strings : \"?:\\\\*\\\\procexp*.sys\") and
+    not process.executable : (\"?:\\\\Program Files\\\\*.exe\",
+                              \"?:\\\\Program Files (x86)\\\\*.exe\",
+                              \"?:\\\\Windows\\\\System32\\\\svchost.exe\",
+                              \"?:\\\\Windows\\\\winsxs\\\\*\\\\TiWorker.exe\",
+                              \"?:\\\\Windows\\\\System32\\\\drvinst.exe\",
+                              \"?:\\\\Windows\\\\System32\\\\services.exe\",
+                              \"?:\\\\Windows\\\\System32\\\\msiexec.exe\",
+                              \"?:\\\\Windows\\\\System32\\\\regsvr32.exe\")"
+
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

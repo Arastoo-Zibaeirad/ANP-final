@@ -1,0 +1,48 @@
+ANPdata:
+- creation_date = "2021/8/7"
+- maturity = "production"
+- updated_date = "2021/8/7"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Identifies processes running from an Alternate Data Stream. This is uncommon for legitimate processes and sometimes done
+    by adversaries to hide malware."
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+- risk_score: 47
+
+- rule_id: "4bd1c1af-79d4-4d37-9efa-6e0240640242"
+
+- severity: "medium"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Defense Evasion"]
+
+- type: "eql"
+
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1564",
+        name : "Hide Artifacts",
+        reference : "https://attack.mitre.org/techniques/T1564/"
+      ],
+      tactic: [
+        id : "TA0005",
+        name : "Defense Evasion",
+        reference : "https://attack.mitre.org/tactics/TA0005/"]]]
+
+name: "Unusual Process Execution Path - Alternate Data Stream"
+index: anp-log-agentbase-winclient
+type: any
+eql:
+  "query": "process where event.type == \"start\" and    process.args : \"?:\\\\*:*\" and process.args_count == 1"
+
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

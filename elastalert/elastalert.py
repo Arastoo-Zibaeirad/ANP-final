@@ -380,17 +380,19 @@ class ElastAlerter(object):
         :return: A list of hits, bounded by rule['max_query_size'] (or self.max_query_size).
         """
        
-            
+        
         if rule.get('filter') or rule.get('kql'):
-            print("\nline382")
-            query = self.get_query(
-                rule['filter'],
-                starttime,
-                endtime,
-                timestamp_field=rule['timestamp_field'],
-                to_ts_func=rule['dt_to_ts'],
-                five=rule['five'],
-            )
+            if rule.get('kql'):
+                query = json.dumps(rule['kql'])
+            else:   
+                query = self.get_query(
+                    rule['filter'],
+                    starttime,
+                    endtime,
+                    timestamp_field=rule['timestamp_field'],
+                    to_ts_func=rule['dt_to_ts'],
+                    five=rule['five'],  
+                )
             if self.thread_data.current_es.is_atleastsixsix():
                 extra_args = {'_source_includes': rule['include']}
             else:
@@ -415,7 +417,8 @@ class ElastAlerter(object):
                         ignore_unavailable=True,
                         **extra_args
                     )
-                    print("res: ", res)
+                    print("KQL_rule_name: ", rule['name'])
+                    # print("KQL_res: ", res)
                     if '_scroll_id' in res:
                         rule['scroll_id'] = res['_scroll_id']
 
@@ -441,118 +444,31 @@ class ElastAlerter(object):
                     e = str(e)[:1024] + '... (%d characters removed)' % (len(str(e)) - 1024)
                 self.handle_error('Error running query: %s' % (e), {'rule': rule['name'], 'query': query})
                 return None
-                
+            
             hits = res['hits']['hits']
         
-        # elif 'kql' in rule:
-        #     print("\nline445")
-            
-        #     query = json.dumps(rule['kql'])
-        #     print("KQL_QUERY: ", query)
-        #     # index1 = index.split(',')
-            
-        #     # for i in index1:
-        #     #     uri = "http://192.168.250.120:9200/{}/_search?pretty".format(i)
-                
-                    
-        #     #     print("uri: ", uri)
-        #     #     headers = {
-        #     #     'Content-Type': 'application/json'
-        #     #     }
-        #     #     res1 = requests.get(uri, headers = headers, data = query)
-        #     #     # print("kql_res: ",res1)
-        #     #     res = res1.json()   
-        #     #     print("KQL_res: ",res)     
-        #     # hits= res['hits']['hits']
-        #     if self.thread_data.current_es.is_atleastsixsix():
-        #         extra_args = {'_source_includes': rule['include']}
-        #     else:
-        #         extra_args = {'_source_include': rule['include']}
-        #     scroll_keepalive = rule.get('scroll_keepalive', self.scroll_keepalive)
-        #     if not rule.get('_source_enabled'):
-        #         if rule['five']:
-        #             query['stored_fields'] = rule['include']
-        #         else:
-        #             query['fields'] = rule['include']
-        #         extra_args = {}
-
-        #     try:
-        #         if scroll:
-                    
-        #             res = self.thread_data.current_es.scroll(scroll_id=rule['scroll_id'], scroll=scroll_keepalive)
-                    
-        #         else:
-        #             res = self.thread_data.current_es.search(
-        #                 scroll=scroll_keepalive,
-        #                 index=index,
-        #                 size=rule.get('max_query_size', self.max_query_size),
-        #                 body=query,
-        #                 ignore_unavailable=True,
-        #                 **extra_args
-        #             )
-                    
-        #             if '_scroll_id' in res:
-        #                 rule['scroll_id'] = res['_scroll_id']
-
-        #             if self.thread_data.current_es.is_atleastseven():
-        #                 self.thread_data.total_hits = int(res['hits']['total']['value'])
-        #             else:
-        #                 self.thread_data.total_hits = int(res['hits']['total'])
-
-        #         if len(res.get('_shards', {}).get('failures', [])) > 0:
-        #             try:
-        #                 errs = [e['reason']['reason'] for e in res['_shards']['failures'] if 'Failed to parse' in e['reason']['reason']]
-        #                 if len(errs):
-        #                     raise ElasticsearchException(errs)
-        #             except (TypeError, KeyError):
-        #                 # Different versions of ES have this formatted in different ways. Fallback to str-ing the whole thing
-        #                 raise ElasticsearchException(str(res['_shards']['failures']))
-
-        #         logging.debug(str(res))
-        #     except ElasticsearchException as e:
-        #         # Elasticsearch sometimes gives us GIGANTIC error messages
-        #         # (so big that they will fill the entire terminal buffer)
-        #         if len(str(e)) > 1024:
-        #             e = str(e)[:1024] + '... (%d characters removed)' % (len(str(e)) - 1024)
-        #         self.handle_error('Error running query: %s' % (e), {'rule': rule['name'], 'query': query})
-        #         return None
-                
-        #     hits = res['hits']['hits']
-    
         elif rule.get('eql'):
-            print("\nline 517")
+            
+            print("###name:", rule.get('name'))
+            # [print(i) for i in range(len(rule.get('ANPrule')))]
             query = json.dumps(rule['eql'])
+            # print("query: ", query)
             # y = json.loads(q)
-            # z = {"query": y["query"]+ "","size": 5}
+            # z = {"query": y["query"]+ "","size": 10000}
             # query = json.dumps(z)
-            print ("\nEQL_query :",query)
-            print("\nindex: ", index)
-            # if self.thread_data.current_es.is_atleastsixsix():
-            #     extra_args = {'_source_includes': rule['include']}
-            # else:
-            #     extra_args = {'_source_include': rule['include']}
-            # scroll_keepalive = rule.get('scroll_keepalive', self.scroll_keepalive)
-            # if not rule.get('_source_enabled'):
-            #     if rule['five']:
-            #         query['stored_fields'] = rule['include']
-            #     else:
-            #         query['fields'] = rule['include']
-            #     extra_args = {}
-
             index = index.split(", ")
             collector = []
             for indx in index:
-                print("\nindx: ", indx)      
                 uri = f"{self.conf['protocol']}://{self.conf['es_host']}:{self.conf['es_port']}/{indx}/_eql/search?pretty"
-                print("\nuri: ",uri)
                 headers = {
                 'Content-Type': 'application/json'
                 }
             
                 try:
-                    res1 = requests.get(uri, headers = headers, data = query)
+                    res1 = requests.get(uri, headers=headers, data=query)
                     res = res1.json()        
-                    print("EQL_res: ",res)
+                    print("\nEQL_query: ",rule['eql'])
+                    # print("\nEQL_res: ",res)
                     logging.debug(str(res))
                 except ElasticsearchException as e:
                     # Elasticsearch sometimes gives us GIGANTIC error messages
@@ -590,15 +506,14 @@ class ElastAlerter(object):
                 elastalert_logger.info(status_log)
             
         hits = self.process_hits(rule, hits)
-        
-        
+
         # Record doc_type for use in get_top_counts (deprecated in ES7)
-        if rule.get('filter') or rule.get('kql'):
+        # if rule.get('filter') or rule.get('kql'):
     
-            if 'doc_type' not in rule and len(hits):
-                # rule['doc_type'] = events[0]['_source']['event']['category']
-                rule['doc_type'] = hits[0]['_type']
-                
+        #     if 'doc_type' not in rule and len(hits):
+        #         # rule['doc_type'] = events[0]['_source']['event']['category']
+        #         rule['doc_type'] = hits[0]['_type']
+
         return hits
         
 
@@ -1133,6 +1048,7 @@ class ElastAlerter(object):
                 'hits': max(self.thread_data.num_hits, self.thread_data.cumulative_hits),
                 '@timestamp': ts_now(),
                 'time_taken': time_taken
+                
                 }
         self.writeback('elastalert_status', body)
 
@@ -1735,6 +1651,25 @@ class ElastAlerter(object):
                 agg_id = res['_id']
 
     def get_alert_body(self, match, rule, alert_sent, alert_time, alert_exception=None):
+         
+        # if res['hits']['total']['value'] == 0:
+        #     bool_eql = False
+        # else:
+        #     bool_eql = True
+        #     if 'events' in res['hits']:
+        #         hits = res['hits']['events'][0]
+        #     else:
+        #         hits = res['hits']['sequences'][0]['events']  
+        # global hits
+       
+        
+        # ANPruledict = {}
+        # for i in rule['ANPrule']:
+        #     ANPruledict.update(i)
+        # print("##################### rule name:",rule['name'])
+        # print("$$$$$$$$$$$$$$$$$$$$$$$$$ ANPruledict:" , ANPruledict)
+        
+        # print("################### rule: ",rule)
         body = {
             'match_body': match,
             'rule_name': rule['name'],
@@ -1742,10 +1677,11 @@ class ElastAlerter(object):
             'alert_sent': alert_sent,
             'alert_time': alert_time,
             'ANPdata': rule['ANPdata'],
-            'ANPrule': rule['ANPrule']
-            # 'ANPrule.threat': rule['ANPrule'][-1]['threat'][1]
-            
+            'ANPrule': rule['ANPrule'],#ANPruledict,
+            'ANPquery': (rule['eql'] if rule.get('eql') else rule['kql'])
+            # 'ANPquery': (rule.get('eql') if rule.get('eql') else rule.get('kql')['query']['query_string'])
             }
+
 
         if rule.get('include_match_in_root'):
             body.update({k: v for k, v in match.items() if not k.startswith('_')})
@@ -1765,6 +1701,7 @@ class ElastAlerter(object):
         # If the alert failed to send, record the exception
         if not alert_sent:
             body['alert_exception'] = alert_exception
+        
         return body
 
     def writeback(self, doc_type, body, rule=None, match_body=None):
@@ -1821,6 +1758,14 @@ class ElastAlerter(object):
                                                           doc_type='elastalert', body=query, size=1000)
             if res['hits']['hits']:
                 return res['hits']['hits']
+            # elif int(res['hits']['total']['value']) == 0:
+            #     return res['hits']['total']['value']
+            # else:                                  
+            #     if 'events' in res['hits']:
+            #         return res['hits']['events']
+            #     elif 'sequences' in res['hits']:
+            #         return res['hits']['sequences'][0]['events']
+            
         except ElasticsearchException as e:
             logging.exception("Error finding recent pending alerts: %s %s" % (e, query))
         return []

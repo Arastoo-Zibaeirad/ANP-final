@@ -1,0 +1,57 @@
+ANPdata:
+- creation_date = "2021/07/28"
+- maturity = "production"
+- updated_date = "2021/07/28"
+
+ANPrule:
+- author = ["Elastic"]
+
+- description = """
+    A sudoers file specifies the commands users or groups can run and from which terminals. Adversaries can take advantage
+    of these configurations to execute commands as other users or spawn processes with higher privileges."""
+
+- language = "kuery"
+
+- license = "Elastic License v2"
+
+- risk_score = 73
+
+- rule_id = "76152ca1-71d0-4003-9e37-0983e12832da"
+
+- severity = "high"
+
+- tags = ["Elastic", "Host", "Linux", "macOS", "Threat Detection", "Privilege Escalation"]
+
+- type = "query"
+
+name: "Potential Privilege Escalation via Sudoers File Modification"
+
+index: ["auditbeat-*", "logs-endpoint.events.*"]
+
+type: any
+
+kql:
+  "query": {"query_string": {"query": "event.category:process and event.type:start and process.args:(echo and *NOPASSWD*ALL*)"}}
+
+threat:
+  - 01:
+    - threat_rule: 
+      - framework = "MITRE ATT&CK"
+    - technique: 
+      - id = "T1548"
+      - name = "Abuse Elevation Control Mechanism"
+      - reference = "https://attack.mitre.org/techniques/T1548/"
+      - subtechnique: 
+        - id = "T1548.003"
+        - name = "Sudo and Sudo Caching"
+        - reference = "https://attack.mitre.org/techniques/T1548/003/"
+    - tactic:
+      - id = "TA0004"
+      - name = Privilege Escalation"
+      - reference = "https://attack.mitre.org/tactics/TA0004/"
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

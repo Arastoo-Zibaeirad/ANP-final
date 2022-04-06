@@ -1,0 +1,66 @@
+ANPdata:
+- creation_date = "2021/8/11"
+- maturity = "production"
+# - query_schema_validation = false
+- updated_date = "2021/8/11"
+# - min_stack_version = "7.12.0"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Detects attempts to exploit privilege escalation vulnerabilities related to the Print Spooler service. For more
+    information refer to CVE-2021-34527 and verify that the impacted system is investigated."
+
+# - false_positives:  ["""Legitimate local user creations may be done by a system or network administrator. Verify whether this is known
+    # behavior in your environment. Local user creations from unfamiliar users or hosts should be investigated. If known
+    # behavior is causing false positives, it can be exempted from the rule."""]
+
+# - interval: "60m"
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+# - note: """## Triage and analysis Decode the base64 encoded Tasks Actions registry value to investigate the task's configured action."""
+
+- references: ["https://msrc.microsoft.com/update-guide/vulnerability/CVE-2021-34527", "https://github.com/afwu/PrintNightmare"]
+
+# - max_signals: 33
+
+- risk_score: 73
+
+- rule_id: "6506c9fd-229e-4722-8f0f-69be759afd2a"
+
+- severity: "high"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Privilege Escalation"]
+
+- type: "eql"
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1068",
+        name : "Exploitation for Privilege Escalation",
+        reference : "https://attack.mitre.org/techniques/T1068/"
+      ],
+      tactic: [
+        id : "TA0004",
+        name : "Privilege Escalation",
+        reference : "https://attack.mitre.org/tactics/TA0004/"]]
+  ]
+name: "Potential PrintNightmare Exploit Registry Modification"
+index: .ds-winlogbeat-8.0.0-2022.02.19-000001
+type: any
+eql:
+  "query": "/* This rule is not compatible with Sysmon due to schema issues */
+    registry where process.name : \"spoolsv.exe\" and
+      (registry.path : \"HKLM\\\\SYSTEM\\\\ControlSet*\\\\Control\\\\Print\\\\Environments\\\\Windows*\\\\Drivers\\\\Version-3\\\\mimikatz*\\\\Data File\" or
+      (registry.path : \"HKLM\\\\SYSTEM\\\\ControlSet*\\\\Control\\\\Print\\\\Environments\\\\Windows*\\\\Drivers\\\\Version-3\\\\*\\\\Configuration File\" and
+      registry.data.strings : (\"kernelbase.dll\", \"ntdll.dll\", \"kernel32.dll\", \"winhttp.dll\", \"user32.dll\")))"
+
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

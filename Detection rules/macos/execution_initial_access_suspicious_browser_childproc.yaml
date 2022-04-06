@@ -1,0 +1,65 @@
+ANPdata:
+- creation_date = "2021/08/08"
+- maturity = "production"
+- updated_date = "2021/08/08"
+
+ANPrule:
+- author = ["Elastic"]
+
+- description = """Identifies the execution of a suspicious browser child process. Adversaries may gain access to a system through a user
+    visiting a website over the normal course of browsing. With this technique, the user's web browser is typically targeted
+    for exploitation."""
+
+- language = "eql"
+
+- license = "Elastic License v2"
+
+- references = ["https://objective-see.com/blog/blog_0x43.html",    "https://fr.slideshare.net/codeblue_jp/cb19-recent-apt-attack-on-crypto-exchange-employees-by-heungsoo-kang"]
+
+- risk_score = 73
+
+- rule_id = "080bc66a-5d56-4d1f-8071-817671716db9"
+
+- severity = "high"
+
+- tags = ["Elastic", "Host", "macOS", "Threat Detection", "Initial Access", "Execution"]
+
+- type = "eql"
+
+name: "Suspicious Browser Child Process"
+
+index: ["logs-endpoint.events.*"]
+
+type: any
+
+eql: 
+  "query": "process where event.type in (\"start\", \"process_started\") and\n  process.parent.name : (\"Google Chrome\", \"Google Chrome Helper*\", \"firefox\", \"Opera\", \"Safari\", \"com.apple.WebKit.WebContent\", \"Microsoft Edge\") and\n  process.name : (\"sh\", \"bash\", \"dash\", \"ksh\", \"tcsh\", \"zsh\", \"curl\", \"wget\", \"python*\", \"perl*\", \"php*\", \"osascript\", \"pwsh\") and\n   process.command_line != null and \n  not process.args :     (       \"/Library/Application Support/Microsoft/MAU*/Microsoft AutoUpdate.app/Contents/MacOS/msupdate\",       \"hw.model\",       \"IOPlatformExpertDevice\",       \"/Volumes/Google Chrome/Google Chrome.app/Contents/Frameworks/*/Resources/install.sh\",      \"--defaults-torrc\",       \"Chrome.app\",       \"Framework.framework/Versions/*/Resources/keystone_promote_preflight.sh\",       \"/Users/*/Library/Application Support/Google/Chrome/recovery/*/ChromeRecovery\",       \"$DISPLAY\",       \"GIO_LAUNCHED_DESKTOP_FILE_PID=$$\"    )"
+
+threat:
+  - 01:
+    - threat_rule: 
+      - framework = "MITRE ATT&CK"
+    - technique:
+      - id = "T1203"
+      - name = "Exploitation for Client Execution"
+      - reference = "https://attack.mitre.org/techniques/T1203/"
+    - tactic:
+      - id = "TA0002"
+      - name =  "Execution"
+      - reference = "https://attack.mitre.org/tactics/TA0002/"
+  - 02:
+    - threat_rule: 
+      - framework = "MITRE ATT&CK"
+    - technique:
+      - id = "T1189"
+      - name = "Drive-by Compromise"
+      - reference = "https://attack.mitre.org/techniques/T1189/"
+    - tactic:
+      - id = "TA0001"
+      - name = "Initial Access"
+      - reference = "https://attack.mitre.org/tactics/TA0001/"
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

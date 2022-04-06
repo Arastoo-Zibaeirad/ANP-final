@@ -1,0 +1,70 @@
+ANPdata:
+- creation_date = "2021/8/4"
+- maturity = "production"
+- updated_date = "2021/8/4"
+# - min_stack_version = "7.12.0"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "This rule identifies a high number (10) of process terminations (stop, delete, or suspend) from the same host within a short time period. This may indicate a defense evasion attempt."
+
+# - false_positives: ["Legit Application Crash with rare Werfault commandline value"]
+
+# - interval: "30m"
+
+- language: "kuery"
+
+- license: "Elastic License v2"
+
+- note: "## Triage and analysis Verify process details such as command line and hash to confirm this activity legitimacy."
+
+# - references: ["https://www.fireeye.com/blog/threat-research/2020/12/evasive-attacker-leverages-solarwinds-supply-chain-compromises-with-sunburst-backdoor.html"]
+
+# - max_signals: 33
+
+- risk_score: 47
+
+- rule_id: "035889c4-2686-4583-a7df-67f89c292f2c"
+
+- severity: "medium"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Defense Evasion"]
+
+- type: "threshold"
+
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1562",
+        name : "Impair Defenses",
+        reference : "https://attack.mitre.org/techniques/T1562/",
+        subtechnique: [
+          [id : "T1562.001",        
+          name : "Disable or Modify Tools",        
+          reference : "https://attack.mitre.org/techniques/T1562/001/"]
+        ]
+      ],
+      tactic: [
+        id : "TA0005",
+        name : "Defense Evasion",
+        reference : "https://attack.mitre.org/tactics/TA0005/"]
+    ]
+  ]
+name: "High Number of Process and/or Service Terminations"
+index: .ds-winlogbeat-8.0.0-2022.02.19-000001
+type: frequency
+timeframe:
+  hours: 4
+num_events: 10
+query_key: host.id
+kql:
+  "query": {"query_string": {"query": "event.category:process and event.type:start and process.name:(net.exe or sc.exe or taskkill.exe) and
+    process.args:(stop or pause or delete or \"/PID\" or \"/IM\" or \"/T\" or \"/F\" or \"/t\" or \"/f\" or \"/im\" or \"/pid\")"}}
+
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

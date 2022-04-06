@@ -1,0 +1,68 @@
+ANPdata:
+- creation_date = "2021/07/31"
+- maturity = "production"
+- updated_date = "2021/07/31"
+
+ANPrule:
+- author = ["Elastic"]
+
+- description = """
+    Cobalt Strike is a threat emulation platform commonly modified and used by adversaries to conduct network attack and
+    exploitation campaigns. This rule detects a network activity algorithm leveraged by Cobalt Strike implant beacons for
+    command and control."""
+
+- false_positives = ["""This rule should be tailored to either exclude systems, as sources or destinations, in which this behavior is expected."""]
+
+- language = "lucene"
+
+- license = "Elastic License v2"
+
+- note = """## Threat intel. This activity has been observed in FIN7 campaigns."""
+
+- references = ["https://blog.morphisec.com/fin7-attacks-restaurant-industry", "https://www.fireeye.com/blog/threat-research/2017/04/fin7-phishing-lnk.html"]
+
+- risk_score = 73
+
+- rule_id = "cf53f532-9cc9-445a-9ae7-fced307ec53c"
+
+- severity = "high"
+
+- tags = ["Elastic", "Network", "Threat Detection", "Command and Control", "Host"]
+
+- type = "query"
+
+name: "Cobalt Strike Command and Control Beacon"
+
+index: ["auditbeat-*", "filebeat-*", "packetbeat-*", "logs-endpoint.events.*"]
+
+type: any
+
+kql:
+  "query": {"query_string": {"query": "event.category:(network or network_traffic) and type:(tls or http) and network.transport:tcp and destination.domain:/[a-z]{3}.stage.[0-9]{8}\\..*/"}}
+
+threat:
+  - 01:
+    - threat_rule: 
+      - framework = "MITRE ATT&CK"
+    - technique1: 
+      - id = "T1071"
+      - name = "Application Layer Protocol"
+      - reference = "https://attack.mitre.org/techniques/T1071/"
+    - technique2: 
+      - id = "T1568"
+      - name = "Dynamic Resolution"
+      - reference = "https://attack.mitre.org/techniques/T1568/"
+      - subtechnique:
+        - id = "T1568.002"
+        - name = "Domain Generation Algorithms"
+        - reference = "https://attack.mitre.org/techniques/T1568/002/"
+    - tactic:
+      - id = "TA0011"
+      - name = "Command and Control"
+      - reference = "https://attack.mitre.org/tactics/TA0011/"
+
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

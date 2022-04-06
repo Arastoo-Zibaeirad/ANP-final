@@ -1,0 +1,51 @@
+ANPdata:
+- creation_date = "2021/8/3"
+- maturity = "production"
+- updated_date = "2021/8/3"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Identifies MsXsl.exe making outbound network connections. This may indicate adversarial activity as MsXsl is often leveraged by adversaries to execute malicious scripts and evade detection."
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+- risk_score: 21
+
+- rule_id: "870d1753-1078-403e-92d4-735f142edcca"
+
+- severity: "medium"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Defense Evasion"]
+
+- type: "eql"
+
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1220",
+        name : "XSL Script Processing",
+        reference : "https://attack.mitre.org/techniques/T1220/"
+      ],
+      tactic: [
+        id : "TA0005",
+        name : "Defense Evasion",
+        reference : "https://attack.mitre.org/tactics/TA0005/"]]]
+
+name: "MsXsl Making Network Connections"
+index: anp-log-agentbase-winclient
+type: any
+eql:
+  "query": "/* duplicate of Network Connection via MsXsl - b86afe07-0d98-4738-b15d-8d7465f95ff5 */
+    sequence by process.entity_id
+      [process where event.type in (\"start\", \"process_started\") and process.name : \"msxsl.exe\"]
+      [network where process.name : \"msxsl.exe\" and network.direction == \"outgoing\"]"
+
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

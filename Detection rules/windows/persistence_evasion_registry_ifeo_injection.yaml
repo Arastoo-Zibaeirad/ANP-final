@@ -1,0 +1,73 @@
+ANPdata:
+- creation_date = "2021/8/10"
+- maturity = "production"
+# - query_schema_validation = false
+- updated_date = "2021/8/10"
+# - min_stack_version = "7.12.0"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "The Debugger and SilentProcessExit registry keys can allow an adversary to intercept the execution of files, causing a
+    different process to be executed. This functionality can be abused by an adversary to establish persistence."
+
+# - false_positives:  ["""PowerShell remoting is a dual-use protocol that can be used for benign or malicious activity. It's important to
+    # baseline your environment to determine the amount of noise to expect from this tool."""]
+
+# - interval: "60m"
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+# - note: """## Triage and analysis Decode the base64 encoded tasks actions registry value to investigate the task configured action."""
+
+- references: ["https://oddvar.moe/2018/04/10/persistence-using-globalflags-in-image-file-execution-options-hidden-from-autoruns-exe/"]
+
+# - max_signals: 33
+
+- risk_score: 41
+
+- rule_id: "6839c821-011d-43bd-bd5b-acff00257226"
+
+- severity: "medium"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Persistence"]
+
+- type: "eql"
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1546",
+        name : "Event Triggered Execution",
+        reference : "https://attack.mitre.org/techniques/T1546/",
+        subtechnique: [
+          [id : "T1546.012",        
+          name : "Image File Execution Options Injection",        
+          reference : "https://attack.mitre.org/techniques/T1546/012/"]
+        ]
+      ],
+      tactic: [
+        id : "TA0003",
+        name : "Persistence",
+        reference : "https://attack.mitre.org/tactics/TA0003/"]
+    ]
+  ]
+name: "Image File Execution Options Injection"
+index: anp-log-agentbase-winclient
+type: any
+eql:
+  "query": "registry where length(registry.data.strings) > 0 and
+    registry.path : (\"HKLM\\\\SOFTWARE\\\\Microsoft\\\\Windows NT\\\\CurrentVersion\\\\Image File Execution Options\\\\*.exe\\\\Debugger\", 
+                      \"HKLM\\\\SOFTWARE\\\\WOW6432Node\\\\Microsoft\\\\Windows NT\\\\CurrentVersion\\\\Image File Execution Options\\\\*\\\\Debugger\", 
+                      \"HKLM\\\\SOFTWARE\\\\Microsoft\\\\Windows NT\\\\CurrentVersion\\\\SilentProcessExit\\\\*\\\\MonitorProcess\", 
+                      \"HKLM\\\\SOFTWARE\\\\WOW6432Node\\\\Microsoft\\\\Windows NT\\\\CurrentVersion\\\\SilentProcessExit\\\\*\\\\MonitorProcess\") and
+      /* add FPs here */
+    not registry.data.strings regex~ (\"\"\"C:\\\\Program Files( \\\\(x86\\\\))?\\\\ThinKiosk\\\\thinkiosk\\\\.exe\"\"\", \"\"\".*\\\\PSAppDeployToolkit\\\\.*\"\"\")"
+
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

@@ -1,0 +1,69 @@
+ANPdata:
+- creation_date = "2021/8/11"
+- maturity = "production"
+# - query_schema_validation = false
+- updated_date = "2021/8/11"
+# - min_stack_version = "7.12.0"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Detects attempts to exploit a privilege escalation vulnerability (CVE-2020-1030) related to the print spooler service.
+    Exploitation involves chaining multiple primitives to load an arbitrary DLL into the print spooler process running as
+    SYSTEM."
+
+# - false_positives:  ["""Legitimate local user creations may be done by a system or network administrator. Verify whether this is known
+    # behavior in your environment. Local user creations from unfamiliar users or hosts should be investigated. If known
+    # behavior is causing false positives, it can be exempted from the rule."""]
+
+# - interval: "60m"
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+# - note: """## Triage and analysis Decode the base64 encoded Tasks Actions registry value to investigate the task's configured action."""
+
+- references: ["https://www.accenture.com/us-en/blogs/cyber-defense/discovering-exploiting-shutting-down-dangerous-windows-print-spooler-vulnerability", "https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES/blob/master/Privilege%20Escalation/privesc_sysmon_cve_20201030_spooler.evtx", "https://msrc.microsoft.com/update-guide/en-US/vulnerability/CVE-2020-1030"]
+
+# - max_signals: 33
+
+- risk_score: 73
+
+- rule_id: "bd7eefee-f671-494e-98df-f01daf9e5f17"
+
+- severity: "high"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Privilege Escalation"]
+
+- type: "eql"
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1068",
+        name : "Exploitation for Privilege Escalation",
+        reference : "https://attack.mitre.org/techniques/T1068/"
+      ],
+      tactic: [
+        id : "TA0004",
+        name : "Privilege Escalation",
+        reference : "https://attack.mitre.org/tactics/TA0004/"]]
+  ]
+name: "Suspicious Print Spooler Point and Print DLL"
+index: .ds-winlogbeat-8.0.0-2022.02.19-000001
+type: any
+eql:
+  "query": "sequence by host.id with maxspan=30s
+    [registry where
+    registry.path : \"HKLM\\\\SOFTWARE\\\\Microsoft\\\\Windows NT\\\\CurrentVersion\\\\Print\\\\Printers\\\\*\\\\SpoolDirectory\" and
+    registry.data.strings : \"C:\\\\Windows\\\\System32\\\\spool\\\\drivers\\\\x64\\\\4\"]
+    [registry where
+    registry.path : \"HKLM\\\\SOFTWARE\\\\Microsoft\\\\Windows NT\\\\CurrentVersion\\\\Print\\\\Printers\\\\*\\\\CopyFiles\\\\Payload\\\\Module\" and
+    registry.data.strings : \"C:\\\\Windows\\\\System32\\\\spool\\\\drivers\\\\x64\\\\4\\\\*\"]"
+
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

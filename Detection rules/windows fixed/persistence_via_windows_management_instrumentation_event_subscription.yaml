@@ -1,0 +1,68 @@
+ANPdata:
+- creation_date = "2021/8/11"
+- maturity = "production"
+# - query_schema_validation = false
+- updated_date = "2021/8/11"
+# - min_stack_version = "7.12.0"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "An adversary can use Windows Management Instrumentation (WMI) to install event filters, providers, consumers, and
+    bindings that execute code when a defined event occurs. Adversaries may use the capabilities of WMI to subscribe to an
+    event and execute arbitrary code when that event occurs, providing persistence on a system."
+
+# - false_positives:  ["""Legitimate local user creations may be done by a system or network administrator. Verify whether this is known
+    # behavior in your environment. Local user creations from unfamiliar users or hosts should be investigated. If known
+    # behavior is causing false positives, it can be exempted from the rule."""]
+
+# - interval: "60m"
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+# - note: """## Triage and analysis Decode the base64 encoded Tasks Actions registry value to investigate the task's configured action."""
+
+# - references: ["https://github.com/irsl/CVE-2020-1313"]
+
+# - max_signals: 33
+
+- risk_score: 21
+
+- rule_id: "9b6813a1-daf1-457e-b0e6-0bb4e55b8a4c"
+
+- severity: "low"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Persistence"]
+
+- type: "eql"
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1546",
+        name : "Event Triggered Execution",
+        reference : "https://attack.mitre.org/techniques/T1546/"
+      ],
+      tactic: [
+        id : "TA0003",
+        name : "Persistence",
+        reference : "https://attack.mitre.org/tactics/TA0003/"]
+    ]
+  ]
+
+name: "Persistence via WMI Event Subscription"
+index: .ds-winlogbeat-8.0.0-2022.02.19-000001
+type: any
+eql:
+  "query": "process where event.type in (\"start\", \"process_started\") and
+    (process.name : \"wmic.exe\" or process.pe.original_file_name == \"wmic.exe\") and
+    process.args : \"create\" and
+    process.args : (\"ActiveScriptEventConsumer\", \"CommandLineEventConsumer\")"
+
+  
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

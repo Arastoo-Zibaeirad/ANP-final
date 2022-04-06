@@ -1,0 +1,58 @@
+ANPdata:
+- creation_date = "2021/08/08"
+- maturity = "production"
+- updated_date = "2021/08/08"
+
+ANPrule:
+- author = ["Elastic"]
+
+- description = """Identifies attempts to enable the root account using the dsenableroot command. This command may be abused by adversaries
+    for persistence, as the root account is disabled by default."""
+
+- language = "kuery"
+
+- license = "Elastic License v2"
+
+- references = ["https://ss64.com/osx/dsenableroot.html"]
+
+- risk_score = 47
+
+- rule_id = "cc2fd2d0-ba3a-4939-b87f-2901764ed036"
+
+- severity = "medium"
+
+- tags = ["Elastic", "Host", "macOS", "Threat Detection", "Persistence"]
+
+- type = "query"
+
+name: "Emond Rules Creation or Modification"
+
+index: ["auditbeat-*", "logs-endpoint.events.*"]
+
+type: any
+
+kql: 
+    "query": {"query_string": {"query": "event.category:process and event.type:(start or process_started) and\n process.name:dsenableroot and not process.args:\"-d\""}}
+
+threat:
+  - 01:
+    - threat_rule: 
+      - framework = "MITRE ATT&CK"
+    - technique:
+      - id = "T1078"
+      - name = "Valid Accounts"
+      - reference = "https://attack.mitre.org/techniques/T1078/"
+      - subtechnique:
+        - id = "T1078.003"
+        - name = "Local Accounts"
+        - reference = "https://attack.mitre.org/techniques/T1078/003/"
+    - tactic:
+      - id = "TA0003"
+      - name = "Persistence"
+      - reference = "https://attack.mitre.org/tactics/TA0003/"
+
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"

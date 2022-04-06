@@ -1,0 +1,70 @@
+ANPdata:
+- creation_date = "2021/8/10"
+- maturity = "production"
+# - query_schema_validation = false
+- updated_date = "2021/8/10"
+# - min_stack_version = "7.12.0"
+ANPrule:
+- author: ["Elastic"]
+
+- description: "Detects attempts to maintain persistence by creating registry keys using AppCert DLLs. AppCert DLLs are loaded by every
+    process using the common API functions to create processes."
+
+# - false_positives:  ["""PowerShell remoting is a dual-use protocol that can be used for benign or malicious activity. It's important to
+    # baseline your environment to determine the amount of noise to expect from this tool."""]
+
+# - interval: "60m"
+
+- language: "eql"
+
+- license: "Elastic License v2"
+
+# - note: """## Triage and analysis Decode the base64 encoded tasks actions registry value to investigate the task configured action."""
+
+# - references: ["https://www.mdsec.co.uk/2017/06/rdpinception/"]
+
+# - max_signals: 33
+
+- risk_score: 47
+
+- rule_id: "513f0ffd-b317-4b9c-9494-92ce861f22c7"
+
+- severity: "medium"
+
+- tags: ["Elastic", "Host", "Windows", "Threat Detection", "Persistence"]
+
+- type: "eql"
+
+- threat: [
+
+    [framework : "MITRE ATT&CK",
+      technique: [
+        id : "T1546",
+        name : "Event Triggered Execution",
+        reference : "https://attack.mitre.org/techniques/T1546/",
+        subtechnique: [
+          [id : "T1546.009",        
+          name : "AppCert DLLs",        
+          reference : "https://attack.mitre.org/techniques/T1546/009/"]
+        ]
+      ],
+      tactic: [
+        id : "TA0003",
+        name : "Persistence",
+        reference : "https://attack.mitre.org/tactics/TA0003/"]
+    ]
+  ]
+
+name: "Registry Persistence via AppCert DLL"
+index: .ds-winlogbeat-8.0.0-2022.02.19-000001
+type: any
+eql:
+  "query": "registry where
+    /* uncomment once stable length(bytes_written_string) > 0 and */
+      registry.path : \"HKLM\\\\SYSTEM\\\\ControlSet*\\\\Control\\\\Session Manager\\\\AppCertDLLs\\\\*\""
+
+alert:
+- "slack"
+
+slack:
+slack_webhook_url: "https://hooks.slack.com/services/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"
