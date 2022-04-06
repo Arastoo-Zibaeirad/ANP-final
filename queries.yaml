@@ -1,0 +1,85 @@
+curl -X GET "10.1.71.35:9200/.ds-winlogbeat-8.0.0-2022.02.19-000001/_search?pretty" -H 'Content-Type: application/json' -d'
+{
+          "query": {"query_string": {"query": "process.name:MSBuild.exe and event.action:\"CreateRemoteThread detected (rule: CreateRemoteThread)\"" }  }
+
+
+}
+'
+
+
+curl -X GET "10.1.71.35:9200/.ds-winlogbeat-8.0.0-2022.02.19-000001/_eql/search?pretty" -H 'Content-Type: application/json' -d'
+{
+                  "query": "process where event.type in (\"start\", \"process_started\") and    /* update here with any new lolbas with dump capability */    (process.pe.original_file_name == \"procdump\" and process.args : \"-ma\") or    (process.name : \"ProcessDump.exe\" and not process.parent.executable regex~ """C:\\Program Files( \\(x86\\))?\\Cisco Systems\\.*""") or    (process.pe.original_file_name == \"WriteMiniDump.exe\" and not process.parent.executable regex~ """C:\\Program Files( \\(x86\\))?\\Steam\\.*""") or    (process.pe.original_file_name == \"RUNDLL32.EXE\" and (process.args : \"MiniDump*\" or process.command_line : \"*comsvcs.dll*#24*\")) or    (process.pe.original_file_name == \"RdrLeakDiag.exe\" and process.args : \"/fullmemdmp\") or    (process.pe.original_file_name == \"SqlDumper.exe\" and process.args : \"0x01100*\") or    (process.pe.original_file_name == \"TTTracer.exe\" and process.args : \"-dumpFull\" and process.args : \"-attach\") or    (process.pe.original_file_name == \"ntdsutil.exe\" and process.args : \"create*full*\") or    (process.pe.original_file_name == \"diskshadow.exe\" and process.args : \"/s\")"
+    
+    
+    
+    
+}
+'
+
+curl -X POST "192.168.250.123:9200/_aliases?pretty" -H 'Content-Type: application/json' -d'
+{
+    "actions" : [
+        { "add" : { "index" : "winlogbeat-*", "alias" : "winlogalias" } }
+    ]
+}
+'
+
+
+curl -X GET "192.168.250.123:9200/winlogalias/_eql/search?pretty" -H 'Content-Type: application/json' -d'
+{
+
+    "query": "sequence\n  [ any where event.code == \"860\" ]\n  [ any where event.code == \"861\" ]"
+
+}
+'
+
+curl -X GET "192.168.250.123:9200/winlogbeat-7.15.0-2022.02.21-000001/_eql/search?pretty" -H 'Content-Type: application/json' -d'
+{
+             "query": "sequence [any where event.code== \"120\"] [any where event.code== \"121\"]"
+      
+      
+}
+'
+
+####for creating log in windows with powershell manually
+eventcreate /t ERROR /id 120 /l application /d "arastoo"
+####
+curl -X PUT "10.1.71.35:9200/elastalert_status" -H 'Content-Type: application/json' -d'
+
+{
+  "mappings":{
+    "properties":{
+    "rule_name": {
+      "type": "keyword"
+    },
+    "@timestamp": {
+      "type": "date"
+
+    },
+    "alert_time": {
+      "type": "date"
+
+    },
+    "match_time": {
+      "type": "date"
+
+    },
+    "match_body": {
+      "type": "object"
+    },
+    "aggregate_id": {
+      "type": "keyword"
+    }
+  }
+}
+}
+'
+
+
+curl -X DELETE "10.1.71.35:9200/elastalert_status?pretty"
+curl -X DELETE "192.168.250.123:9200/anp-log-agentbase-winclient-000001/?pretty"
+curl -X DELETE "10.1.71.35:9200/elastalert_status*/?pretty"
+curl -X DELETE "192.168.250.123:9200/winlogbeat-*/?pretty"
+curl -X PUT "10.1.71.35:9200/elastalert_status*?pretty"
+curl -X GET "10.1.71.35:9200/elastalert_status/_mapping?pretty"
